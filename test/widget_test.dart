@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // Đổi 'tên_project_của_bạn' thành tên thư mục dự án (ví dụ: edulog)
-import 'package:tên_project_của_bạn/main.dart'; 
+import 'package:edulog/main.dart'; 
 
 void main() {
   testWidgets('Kiểm tra khởi chạy ứng dụng EduLogApp', (WidgetTester tester) async {
