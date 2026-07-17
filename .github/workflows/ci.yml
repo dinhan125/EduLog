@@ -1,0 +1,36 @@
+name: Flutter CI
+
+# Kích hoạt khi có code đẩy lên hoặc tạo Pull Request vào nhánh dev, main
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  test_and_analyze:
+    name: Analyze and Test Code
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Kéo mã nguồn về máy chủ ảo của GitHub
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Cài đặt môi trường Flutter chuẩn
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      # 3. Tải các thư viện phụ thuộc (pubspec.yaml)
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 4. Quét lỗi cú pháp, code rác và cảnh báo
+      - name: Analyze project
+        run: flutter analyze
+
+      # 5. Chạy các bài kiểm thử tự động (Unit/Widget Test)
+      - name: Run tests
+        run: flutter test
