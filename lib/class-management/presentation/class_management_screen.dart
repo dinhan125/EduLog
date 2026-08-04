@@ -1,0 +1,186 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/subject_provider.dart';
+import 'widgets/subject_card.dart';
+import 'widgets/add_subject_bottom_sheet.dart';
+
+class ClassManagementScreen extends ConsumerWidget {
+  const ClassManagementScreen({super.key});
+
+  void _showAddSubjectBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const AddSubjectBottomSheet(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final subjects = ref.watch(subjectListProvider);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA), // Light grey background
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100), // Custom height for Appbar
+        child: Container(
+          color: const Color(0xFF1565C0), // Darker blue header
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 20,
+            right: 20,
+            bottom: 20,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Giảng viên',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Môn học của tôi',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00897B), // Teal avatar background
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                alignment: Alignment.center,
+                child: const Text(
+                  'TV',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Icon(
+                Icons.exit_to_app,
+                color: Colors.white70,
+                size: 26,
+              ),
+            ],
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          // Action Bar (Search, Add, Refresh)
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Tìm kiếm môn học...',
+                        hintStyle: const TextStyle(color: Colors.grey),
+                        prefixIcon: IconButton(
+                          icon: const Icon(Icons.search, color: Colors.grey),
+                          onPressed: () {
+                            debugPrint('Search clicked');
+                          },
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showAddSubjectBottomSheet(context),
+                    icon: const Icon(Icons.add, size: 20),
+                    label: const Text('Thêm', style: TextStyle(fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1976D2), // Blue button
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  height: 48,
+                  width: 48,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00897B), // Teal refresh button
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.refresh, color: Colors.white),
+                    onPressed: () {
+                      // Implement refresh logic here if needed
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Subject List
+          Expanded(
+            child: subjects.isEmpty
+                ? const Center(child: Text('Chưa có môn học nào.'))
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: subjects.length,
+                    itemBuilder: (context, index) {
+                      return SubjectCard(subject: subjects[index]);
+                    },
+                  ),
+          ),
+          
+          // End of list indicator
+          if (subjects.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20.0),
+              child: Text(
+                'Bạn đã xem hết danh sách.',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
