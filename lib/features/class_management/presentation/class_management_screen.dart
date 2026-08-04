@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/subject_provider.dart';
+import '../domain/class_controller.dart';
 import 'widgets/subject_card.dart';
 import 'widgets/add_subject_bottom_sheet.dart';
 
@@ -18,7 +18,8 @@ class ClassManagementScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final subjects = ref.watch(subjectListProvider);
+    final classesState = ref.watch(classControllerProvider);
+    final classes = classesState.value ?? [];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA), // Light grey background
@@ -156,19 +157,19 @@ class ClassManagementScreen extends ConsumerWidget {
           
           // Subject List
           Expanded(
-            child: subjects.isEmpty
+            child: classes.isEmpty
                 ? const Center(child: Text('Chưa có môn học nào.'))
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: subjects.length,
+                    itemCount: classes.length,
                     itemBuilder: (context, index) {
-                      return SubjectCard(subject: subjects[index]);
+                      return SubjectCard(classModel: classes[index]);
                     },
                   ),
           ),
           
           // End of list indicator
-          if (subjects.isNotEmpty)
+          if (classes.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 20.0),
               child: Text(
