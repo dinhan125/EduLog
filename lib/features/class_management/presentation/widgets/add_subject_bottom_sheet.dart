@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/subject.dart';
-import '../../providers/subject_provider.dart';
+import '../../domain/class_controller.dart';
 
 class AddSubjectBottomSheet extends ConsumerStatefulWidget {
   const AddSubjectBottomSheet({super.key});
@@ -30,24 +29,30 @@ class _AddSubjectBottomSheetState extends ConsumerState<AddSubjectBottomSheet> {
     super.dispose();
   }
 
-  void _createSubject() {
+  Future<void> _createSubject() async {
     if (_nameController.text.trim().isEmpty) return;
 
-    final newSubject = Subject(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: _nameController.text.trim(),
-      semester: _selectedSemester,
-      groupCount: 0,
-      createdAt: DateTime.now(),
-    );
+    final name = _nameController.text.trim();
 
-    ref.read(subjectListProvider.notifier).addSubject(newSubject);
-    Navigator.of(context).pop();
+    // Call new Clean Architecture controller
+    await ref.read(classControllerProvider.notifier).addClass(name);
+    
+    if (mounted) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tạo môn học thành công!'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isValid = _nameController.text.trim().isNotEmpty;
+    final classState = ref.watch(classControllerProvider);
+    final isLoading = classState.isLoading;
 
     return Container(
       padding: EdgeInsets.only(
@@ -248,7 +253,7 @@ class _AddSubjectBottomSheetState extends ConsumerState<AddSubjectBottomSheet> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: isValid ? _createSubject : null,
+                      onPressed: (isValid && !isLoading) ? _createSubject : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1976D2),
                         disabledBackgroundColor: Colors.grey.shade300,
@@ -260,12 +265,22 @@ class _AddSubjectBottomSheetState extends ConsumerState<AddSubjectBottomSheet> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.add, size: 18),
-                          SizedBox(width: 4),
-                          Text(
+                          if (isLoading)
+                            const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          else
+                            const Icon(Icons.add, size: 18),
+                          const SizedBox(width: 4),
+                          const Text(
                             'Tạo môn học',
                             style: TextStyle(
                               fontSize: 16,
