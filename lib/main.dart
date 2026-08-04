@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'class-management/presentation/class_management_screen.dart';
 
 void main() {
   // Bọc toàn bộ ứng dụng trong ProviderScope để Riverpod hoạt động
@@ -26,7 +27,7 @@ class EduLogApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const DashboardScreen(),
+      home: const ClassManagementScreen(),
     );
   }
 }
