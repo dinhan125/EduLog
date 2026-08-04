@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../models/subject.dart';
+import '../../data/models/class_model.dart';
 
 class InviteStudentBottomSheet extends StatelessWidget {
-  final Subject subject;
+  final ClassModel classModel;
 
-  const InviteStudentBottomSheet({super.key, required this.subject});
+  const InviteStudentBottomSheet({super.key, required this.classModel});
 
   @override
   Widget build(BuildContext context) {
-    // Generate dummy invite code and link based on subject
-    final inviteCode = 'MOB-K65-7K3F'; // Mocking
+    // Generate dummy invite code and link based on classModel
+    final inviteCode = classModel.inviteCode;
     final inviteLink = 'edulog.app/join/$inviteCode';
 
     return Container(
@@ -57,7 +57,7 @@ class InviteStudentBottomSheet extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${subject.name} - KTPM K65', // Appending mock suffix as per design
+                          '${classModel.name} - KTPM K65', // Appending mock suffix as per design
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey.shade600,

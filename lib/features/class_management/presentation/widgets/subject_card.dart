@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../models/subject.dart';
+import '../../data/models/class_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/subject_provider.dart';
+import '../../domain/class_controller.dart';
 import 'invite_student_bottom_sheet.dart';
 
 class SubjectCard extends ConsumerWidget {
-  final Subject subject;
+  final ClassModel classModel;
 
-  const SubjectCard({super.key, required this.subject});
+  const SubjectCard({super.key, required this.classModel});
 
   String _formatTimeAgo(DateTime date) {
     final difference = DateTime.now().difference(date);
@@ -26,7 +26,7 @@ class SubjectCard extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => InviteStudentBottomSheet(subject: subject),
+      builder: (context) => InviteStudentBottomSheet(classModel: classModel),
     );
   }
 
@@ -49,12 +49,12 @@ class SubjectCard extends ConsumerWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Dismissible(
-          key: Key(subject.id),
+          key: Key(classModel.id),
           direction: DismissDirection.endToStart,
           onDismissed: (direction) {
-            ref.read(subjectListProvider.notifier).removeSubject(subject.id);
+            ref.read(classControllerProvider.notifier).removeClass(classModel.id);
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${subject.name} đã bị xóa')),
+              SnackBar(content: Text('${classModel.name} đã bị xóa')),
             );
           },
           background: Container(
@@ -73,7 +73,7 @@ class SubjectCard extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        subject.name,
+                        classModel.name,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -87,9 +87,9 @@ class SubjectCard extends ConsumerWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    _buildTag(subject.semester, const Color(0xFFE3F2FD), const Color(0xFF1976D2)),
+                    _buildTag('HK1-2025', const Color(0xFFE3F2FD), const Color(0xFF1976D2)),
                     const SizedBox(width: 8),
-                    _buildTag('${subject.groupCount} NHÓM', const Color(0xFFE0F2F1), const Color(0xFF00796B)),
+                    _buildTag('0 NHÓM', const Color(0xFFE0F2F1), const Color(0xFF00796B)),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -103,7 +103,7 @@ class SubjectCard extends ConsumerWidget {
                         Icon(Icons.people_alt_outlined, size: 18, color: Colors.grey.shade600),
                         const SizedBox(width: 6),
                         Text(
-                          '${subject.groupCount} nhóm',
+                          '0 nhóm',
                           style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
                         ),
                       ],
