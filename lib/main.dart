@@ -12,8 +12,19 @@ void main() async {
   );
 
   runApp(
-    const ProviderScope(
-      child: EduLogApp(),
+    ProviderScope(
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (_) => StudentDashboardProvider(
+              joinClassUseCase: JoinClassUseCase(
+                MockStudentDashboardRepositoryImpl(),
+              ),
+            ),
+          ),
+        ],
+        child: const EduLogApp(),
+      ),
     ),
   );
 }
