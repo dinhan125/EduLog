@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'features/class_management/presentation/class_management_screen.dart';
+import 'firebase_options.dart';
 
 void main() {
   // Bọc toàn bộ ứng dụng trong ProviderScope để Riverpod hoạt động
