@@ -9,18 +9,6 @@ class SubjectCard extends ConsumerWidget {
 
   const SubjectCard({super.key, required this.classModel});
 
-  String _formatTimeAgo(DateTime date) {
-    final difference = DateTime.now().difference(date);
-    if (difference.inDays > 30) {
-      return 'Tạo ${difference.inDays ~/ 30} tháng trước';
-    } else if (difference.inDays >= 7) {
-      return 'Tạo ${difference.inDays ~/ 7} tuần trước';
-    } else if (difference.inDays > 0) {
-      return 'Tạo ${difference.inDays} ngày trước';
-    }
-    return 'Tạo hôm nay';
-  }
-
   void _showInviteSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -40,7 +28,7 @@ class SubjectCard extends ConsumerWidget {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
