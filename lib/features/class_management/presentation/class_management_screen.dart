@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/class_controller.dart';
 import 'widgets/subject_card.dart';
 import 'widgets/add_subject_bottom_sheet.dart';
+import '../../student_dashboard/presentation/student_dashboard_screen.dart';
 
 class ClassManagementScreen extends ConsumerWidget {
   const ClassManagementScreen({super.key});
@@ -79,6 +80,15 @@ class ClassManagementScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 16),
+              IconButton(
+                icon: const Icon(Icons.swap_horiz, color: Colors.white, size: 26),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const StudentDashboardScreen()),
+                  );
+                },
+              ),
               const Icon(
                 Icons.exit_to_app,
                 color: Colors.white70,
@@ -114,7 +124,9 @@ class ClassManagementScreen extends ConsumerWidget {
                           },
                         ),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                        ),
                       ),
                     ),
                   ),
@@ -125,7 +137,10 @@ class ClassManagementScreen extends ConsumerWidget {
                   child: ElevatedButton.icon(
                     onPressed: () => _showAddSubjectBottomSheet(context),
                     icon: const Icon(Icons.add, size: 20),
-                    label: const Text('Thêm', style: TextStyle(fontWeight: FontWeight.bold)),
+                    label: const Text(
+                      'Thêm',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1976D2), // Blue button
                       foregroundColor: Colors.white,
@@ -154,7 +169,7 @@ class ClassManagementScreen extends ConsumerWidget {
               ],
             ),
           ),
-          
+
           // Subject List
           Expanded(
             child: classes.isEmpty
@@ -167,17 +182,14 @@ class ClassManagementScreen extends ConsumerWidget {
                     },
                   ),
           ),
-          
+
           // End of list indicator
           if (classes.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 20.0),
               child: Text(
                 'Bạn đã xem hết danh sách.',
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
               ),
             ),
         ],
