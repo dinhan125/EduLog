@@ -109,7 +109,7 @@ class ClassListItem extends StatelessWidget {
                     Icon(Icons.people_outline, size: 18, color: Colors.grey[500]),
                     const SizedBox(width: 6),
                     Text(
-                      '\${classItem.studentCount} sinh viên',
+                      '${classItem.studentCount} sinh viên',
                       style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
                     const SizedBox(width: 20),

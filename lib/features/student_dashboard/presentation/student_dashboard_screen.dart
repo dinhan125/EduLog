@@ -44,7 +44,7 @@ class StudentDashboardScreen extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                              '\${provider.classes.length} lớp',
+                              '${provider.classes.length} lớp',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
