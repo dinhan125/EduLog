@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/subject.dart';
+import 'package:edulog/features/class_management/data/models/subject.dart';
 
 final subjectListProvider = NotifierProvider<SubjectListNotifier, List<Subject>>(() {
   return SubjectListNotifier();
