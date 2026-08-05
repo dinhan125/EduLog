@@ -1,12 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'features/class_management/presentation/class_management_screen.dart';
+import 'package:provider/provider.dart';
+import 'features/student_dashboard/presentation/student_dashboard_screen.dart';
+import 'features/student_dashboard/presentation/providers/student_dashboard_provider.dart';
+import 'features/student_dashboard/domain/usecases/join_class_usecase.dart';
+import 'features/student_dashboard/data/repositories/mock_student_dashboard_repository_impl.dart';
 
 void main() {
   // Bọc toàn bộ ứng dụng trong ProviderScope để Riverpod hoạt động
+  // Bọc MultiProvider để Provider hoạt động
   runApp(
-    const ProviderScope(
-      child: EduLogApp(),
+    ProviderScope(
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (_) => StudentDashboardProvider(
+              joinClassUseCase: JoinClassUseCase(
+                MockStudentDashboardRepositoryImpl(),
+              ),
+            ),
+          ),
+        ],
+        child: const EduLogApp(),
+      ),
     ),
   );
 }
@@ -27,7 +43,7 @@ class EduLogApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: ClassManagementScreen(),
+      home: const StudentDashboardScreen(),
     );
   }
 }
