@@ -1,9 +1,10 @@
+import 'package:edulog/features/class_management/data/models/subject.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/subject.dart';
 
-final subjectListProvider = NotifierProvider<SubjectListNotifier, List<Subject>>(() {
-  return SubjectListNotifier();
-});
+final subjectListProvider =
+    NotifierProvider<SubjectListNotifier, List<Subject>>(() {
+      return SubjectListNotifier();
+    });
 
 class SubjectListNotifier extends Notifier<List<Subject>> {
   @override
