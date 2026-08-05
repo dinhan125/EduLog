@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "750031630648",
+    "project_id": "edulog-88a7f",
+    "storage_bucket": "edulog-88a7f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:750031630648:android:b7ee0bbada5a012a94d1cd",
+        "android_client_info": {
+          "package_name": "com.example.edulog"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3f_XAhKh9FM1avA-55IaTMDkXO9lMTdE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

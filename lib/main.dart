@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:provider/provider.dart';
-import 'features/student_dashboard/presentation/student_dashboard_screen.dart';
-import 'features/student_dashboard/presentation/providers/student_dashboard_provider.dart';
-import 'features/student_dashboard/domain/usecases/join_class_usecase.dart';
-import 'features/student_dashboard/data/repositories/mock_student_dashboard_repository_impl.dart';
+import 'package:firebase_core/firebase_core.dart'; // Thêm dòng này
+import 'firebase_options.dart'; // Thêm dòng này (đã có sẵn trong dự án)
+import 'features/auth/presentation/login_screen.dart';
 
-void main() {
-  // Bọc toàn bộ ứng dụng trong ProviderScope để Riverpod hoạt động
-  // Bọc MultiProvider để Provider hoạt động
+void main() async {
+  // Bắt buộc phải có 2 dòng này để kết nối Firebase trước khi chạy app
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(
     ProviderScope(
       child: MultiProvider(
@@ -36,36 +38,13 @@ class EduLogApp extends StatelessWidget {
       title: 'EduLog - KTPM K65',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // Cấu hình Design Tokens cơ bản theo chuẩn Material 3
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1E88E5), // Màu xanh chủ đạo
+          seedColor: const Color(0xFF1E88E5),
           brightness: Brightness.light,
         ),
         useMaterial3: true,
       ),
-      home: const StudentDashboardScreen(),
-    );
-  }
-}
-
-// Màn hình chính tạm thời để kiểm tra app khởi tạo thành công
-class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Hệ thống Đánh giá EduLog'),
-        centerTitle: true,
-      ),
-      body: const Center(
-        child: Text(
-          'Khởi tạo kiến trúc Riverpod thành công!\nSẵn sàng code tính năng.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-      ),
+      home: const LoginScreen(),
     );
   }
 }
