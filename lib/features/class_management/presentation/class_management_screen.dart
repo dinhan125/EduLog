@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../auth/data/auth_service.dart';
+import '../../auth/presentation/login_screen.dart';
 import '../domain/class_controller.dart';
 import 'widgets/subject_card.dart';
 import 'widgets/add_subject_bottom_sheet.dart';
+import '../../student_dashboard/presentation/student_dashboard_screen.dart';
 
 class ClassManagementScreen extends ConsumerWidget {
-  const ClassManagementScreen({super.key});
+  const ClassManagementScreen({super.key, this.authService});
+
+  final IAuthService? authService;
 
   void _showAddSubjectBottomSheet(BuildContext context) {
     showModalBottomSheet(
@@ -13,6 +18,25 @@ class ClassManagementScreen extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const AddSubjectBottomSheet(),
+    );
+  }
+
+  Future<void> _handleLogout(BuildContext context) async {
+    final IAuthService currentAuthService = authService ?? AuthService();
+
+    await currentAuthService.logout();
+
+    if (!context.mounted) {
+      return;
+    }
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => LoginScreen(
+          authService: currentAuthService,
+        ),
+      ),
+      (Route<dynamic> route) => false,
     );
   }
 
@@ -79,10 +103,19 @@ class ClassManagementScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              const Icon(
-                Icons.exit_to_app,
-                color: Colors.white70,
-                size: 26,
+              IconButton(
+                icon: const Icon(Icons.swap_horiz, color: Colors.white, size: 26),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const StudentDashboardScreen()),
+                  );
+                },
+              ),
+              IconButton(
+                tooltip: 'Đăng xuất',
+                icon: const Icon(Icons.exit_to_app, color: Colors.white70, size: 26),
+                onPressed: () => _handleLogout(context),
               ),
             ],
           ),
@@ -114,7 +147,9 @@ class ClassManagementScreen extends ConsumerWidget {
                           },
                         ),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                        ),
                       ),
                     ),
                   ),
@@ -125,7 +160,10 @@ class ClassManagementScreen extends ConsumerWidget {
                   child: ElevatedButton.icon(
                     onPressed: () => _showAddSubjectBottomSheet(context),
                     icon: const Icon(Icons.add, size: 20),
-                    label: const Text('Thêm', style: TextStyle(fontWeight: FontWeight.bold)),
+                    label: const Text(
+                      'Thêm',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1976D2), // Blue button
                       foregroundColor: Colors.white,
@@ -154,7 +192,7 @@ class ClassManagementScreen extends ConsumerWidget {
               ],
             ),
           ),
-          
+
           // Subject List
           Expanded(
             child: classes.isEmpty
@@ -167,17 +205,14 @@ class ClassManagementScreen extends ConsumerWidget {
                     },
                   ),
           ),
-          
+
           // End of list indicator
           if (classes.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 20.0),
               child: Text(
                 'Bạn đã xem hết danh sách.',
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
               ),
             ),
         ],
