@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/class_entity.dart';
+import 'package:provider/provider.dart';
+import '../providers/group_management_provider.dart';
+import '../screens/group_selection_screen.dart';
+import '../screens/group_detail_screen.dart';
 
 class ClassListItem extends StatelessWidget {
   final ClassEntity classItem;
@@ -26,10 +30,33 @@ class ClassListItem extends StatelessWidget {
             offset: const Offset(0, 2),
           ),
         ],
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
       ),
-      child: Column(
-        children: [
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            final provider = context.read<GroupManagementProvider>();
+            provider.initForClass(classItem);
+            
+            if (provider.currentGroup != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => GroupDetailScreen(classId: classItem.id),
+                ),
+              );
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => GroupSelectionScreen(classItem: classItem),
+                ),
+              );
+            }
+          },
+          child: Column(
+            children: [
           // Top border line
           Container(
             height: 4,
@@ -130,6 +157,8 @@ class ClassListItem extends StatelessWidget {
           ),
         ],
       ),
+    ),
+    ),
     );
   }
 }

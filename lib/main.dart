@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
 import 'features/student_dashboard/presentation/student_dashboard_screen.dart';
 import 'features/student_dashboard/presentation/providers/student_dashboard_provider.dart';
+import 'features/student_dashboard/presentation/providers/group_management_provider.dart';
 import 'features/student_dashboard/domain/usecases/join_class_usecase.dart';
 import 'features/student_dashboard/data/repositories/mock_student_dashboard_repository_impl.dart';
 
@@ -13,6 +14,9 @@ void main() {
     ProviderScope(
       child: MultiProvider(
         providers: [
+          ChangeNotifierProvider(
+            create: (_) => GroupManagementProvider(),
+          ),
           ChangeNotifierProvider(
             create: (_) => StudentDashboardProvider(
               joinClassUseCase: JoinClassUseCase(
