@@ -44,20 +44,6 @@ class SubjectCard extends ConsumerWidget {
             ),
           ],
         ),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade200),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Dismissible(
