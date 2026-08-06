@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class GroupListScreen extends ConsumerWidget {
-  const GroupListScreen({super.key});
+  final bool hasGroups;
+  const GroupListScreen({super.key, required this.hasGroups});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Mock state to toggle between empty and list state
-    final bool hasGroups = true;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: _buildAppBar(context, hasGroups),
@@ -18,7 +16,7 @@ class GroupListScreen extends ConsumerWidget {
 
   PreferredSizeWidget _buildAppBar(BuildContext context, bool hasGroups) {
     return PreferredSize(
-      preferredSize: Size.fromHeight(hasGroups ? 130 : 80),
+      preferredSize: Size.fromHeight(hasGroups ? 140 : 80),
       child: Container(
         color: const Color(0xFF1565C0),
         padding: EdgeInsets.only(
@@ -134,7 +132,7 @@ class GroupListScreen extends ConsumerWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -282,7 +280,7 @@ class GroupListScreen extends ConsumerWidget {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
