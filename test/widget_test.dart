@@ -1,34 +1,41 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:provider/provider.dart';
+import 'package:edulog/features/auth/data/auth_service.dart';
+import 'package:edulog/features/auth/presentation/login_screen.dart';
 
-import 'package:edulog/main.dart';
-import 'package:edulog/features/student_dashboard/presentation/providers/student_dashboard_provider.dart';
-import 'package:edulog/features/student_dashboard/domain/usecases/join_class_usecase.dart';
-import 'package:edulog/features/student_dashboard/data/repositories/mock_student_dashboard_repository_impl.dart';
+class _SmokeAuthService implements IAuthService {
+  @override
+  Future<String> loginWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    return 'giang_vien';
+  }
+
+  @override
+  Future<String> loginWithGoogle() async {
+    return 'sinh_vien';
+  }
+
+  @override
+  Future<void> logout() async {}
+}
 
 void main() {
-  testWidgets('Kiểm tra khởi chạy ứng dụng EduLogApp', (WidgetTester tester) async {
-    // Bọc ứng dụng trong ProviderScope và MultiProvider để mô phỏng môi trường thật
+  testWidgets('Hiển thị màn hình đăng nhập', (WidgetTester tester) async {
     await tester.pumpWidget(
-      ProviderScope(
-        child: MultiProvider(
-          providers: [
-            ChangeNotifierProvider(
-              create: (_) => StudentDashboardProvider(
-                joinClassUseCase: JoinClassUseCase(
-                  MockStudentDashboardRepositoryImpl(),
-                ),
-              ),
-            ),
-            // Thêm các Provider khác (nếu có) vào đây trong tương lai
-          ],
-          child: const EduLogApp(),
+      MaterialApp(
+        home: LoginScreen(
+          authService: _SmokeAuthService(),
         ),
       ),
     );
 
-    // Xác nhận ứng dụng đã render thành công (không bị crash do thiếu provider)
-    expect(find.byType(EduLogApp), findsOneWidget);
+    expect(find.text('EduLog'), findsOneWidget);
+    expect(find.text('Hỗ trợ Vấn đáp Bài tập lớn'), findsOneWidget);
+    expect(find.text('Email'), findsOneWidget);
+    expect(find.text('Mật khẩu'), findsOneWidget);
+    expect(find.text('ĐĂNG NHẬP'), findsOneWidget);
+    expect(find.text('Đăng nhập bằng Google'), findsOneWidget);
+    expect(find.text('Đăng ký'), findsOneWidget);
   });
 }
