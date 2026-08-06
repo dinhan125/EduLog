@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-impDort 'package:provider/provider.dart';
+import 'package:provider/provider.dart';
 import 'features/student_dashboard/presentation/student_dashboard_screen.dart';
 import 'features/student_dashboard/presentation/providers/student_dashboard_provider.dart';
 import 'features/student_dashboard/presentation/providers/group_management_provider.dart';
