@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../auth/data/auth_service.dart';
+import '../../auth/presentation/login_screen.dart';
 import '../domain/class_controller.dart';
 import 'widgets/subject_card.dart';
 import 'widgets/add_subject_bottom_sheet.dart';
 import '../../student_dashboard/presentation/student_dashboard_screen.dart';
 
 class ClassManagementScreen extends ConsumerWidget {
-  const ClassManagementScreen({super.key});
+  const ClassManagementScreen({super.key, this.authService});
+
+  final IAuthService? authService;
 
   void _showAddSubjectBottomSheet(BuildContext context) {
     showModalBottomSheet(
@@ -14,6 +18,25 @@ class ClassManagementScreen extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const AddSubjectBottomSheet(),
+    );
+  }
+
+  Future<void> _handleLogout(BuildContext context) async {
+    final IAuthService currentAuthService = authService ?? AuthService();
+
+    await currentAuthService.logout();
+
+    if (!context.mounted) {
+      return;
+    }
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => LoginScreen(
+          authService: currentAuthService,
+        ),
+      ),
+      (Route<dynamic> route) => false,
     );
   }
 
@@ -89,10 +112,10 @@ class ClassManagementScreen extends ConsumerWidget {
                   );
                 },
               ),
-              const Icon(
-                Icons.exit_to_app,
-                color: Colors.white70,
-                size: 26,
+              IconButton(
+                tooltip: 'Đăng xuất',
+                icon: const Icon(Icons.exit_to_app, color: Colors.white70, size: 26),
+                onPressed: () => _handleLogout(context),
               ),
             ],
           ),
