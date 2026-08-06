@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
-import 'features/student_dashboard/presentation/student_dashboard_screen.dart';
 import 'features/student_dashboard/presentation/providers/student_dashboard_provider.dart';
 import 'features/student_dashboard/presentation/providers/group_management_provider.dart';
 import 'features/student_dashboard/domain/usecases/join_class_usecase.dart';
 import 'features/student_dashboard/data/repositories/mock_student_dashboard_repository_impl.dart';
 import 'package:firebase_core/firebase_core.dart'; // Thêm dòng này
 import 'firebase_options.dart'; // Thêm dòng này (đã có sẵn trong dự án)
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 import 'features/auth/presentation/login_screen.dart';
 
 void main() async {
@@ -39,8 +36,6 @@ void main() async {
         ],
         child: const EduLogApp(),
       ),
-    const ProviderScope(
-      child: EduLogApp(),
     ),
   );
 }
