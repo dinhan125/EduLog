@@ -8,15 +8,20 @@ import 'features/student_dashboard/domain/usecases/join_class_usecase.dart';
 import 'features/student_dashboard/data/repositories/mock_student_dashboard_repository_impl.dart';
 import 'package:firebase_core/firebase_core.dart'; // Thêm dòng này
 import 'firebase_options.dart'; // Thêm dòng này (đã có sẵn trong dự án)
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'features/auth/presentation/login_screen.dart';
 
 void main() async {
-  // Bắt buộc phải có 2 dòng này để kết nối Firebase trước khi chạy app
+  // Đảm bảo các binding của Flutter đã được khởi tạo trước khi gọi Native code
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Khởi tạo kết nối Firebase với cấu hình tương ứng của nền tảng hiện tại
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Bọc toàn bộ ứng dụng trong ProviderScope để kích hoạt hệ thống quản lý trạng thái Riverpod
   runApp(
     ProviderScope(
       child: MultiProvider(
@@ -34,6 +39,8 @@ void main() async {
         ],
         child: const EduLogApp(),
       ),
+    const ProviderScope(
+      child: EduLogApp(),
     ),
   );
 }
@@ -47,12 +54,14 @@ class EduLogApp extends StatelessWidget {
       title: 'EduLog - KTPM K65',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        // Cấu hình Design System cơ bản theo chuẩn Material 3
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1E88E5),
+          seedColor: const Color(0xFF1E88E5), // Tông màu chủ đạo của EduLog
           brightness: Brightness.light,
         ),
         useMaterial3: true,
       ),
+      // Màn hình khởi chạy đầu tiên là giao diện Đăng nhập
       home: const LoginScreen(),
     );
   }

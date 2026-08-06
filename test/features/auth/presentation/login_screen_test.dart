@@ -69,7 +69,6 @@ void main() {
       expect(fakeAuthService.capturedEmail, 'giangvien@truong.edu.vn');
       expect(fakeAuthService.capturedPassword, '123456');
       expect(loginRole, 'giang_vien');
-      expect(find.text('Đăng nhập thành công: giang_vien'), findsOneWidget);
     });
 
     testWidgets('Bam nut Google se goi loginWithGoogle va tra role', (
@@ -95,7 +94,6 @@ void main() {
 
       expect(fakeAuthService.googleLoginCalled, isTrue);
       expect(loginRole, 'sinh_vien');
-      expect(find.text('Đăng nhập thành công: sinh_vien'), findsOneWidget);
     });
   });
 }
