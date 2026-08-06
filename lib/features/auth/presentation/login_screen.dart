@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/auth_service.dart';
+import '../../class_management/presentation/class_management_screen.dart';
+import '../../student_dashboard/presentation/student_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
@@ -65,8 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      widget.onLoginSuccess?.call(role);
-      _showMessage('Đăng nhập thành công: $role');
+      _handleLoginSuccess(role);
     } catch (error) {
       if (!mounted) {
         return;
@@ -93,8 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      widget.onLoginSuccess?.call(role);
-      _showMessage('Đăng nhập thành công: $role');
+      _handleLoginSuccess(role);
     } catch (error) {
       if (!mounted) {
         return;
@@ -115,6 +115,38 @@ class _LoginScreenState extends State<LoginScreen> {
       ..showSnackBar(
         SnackBar(content: Text(message)),
       );
+  }
+
+  void _handleLoginSuccess(String role) {
+    // Nếu có callback injected từ ngoài (ví dụ trong test), ưu tiên callback này.
+    if (widget.onLoginSuccess != null) {
+      widget.onLoginSuccess!.call(role);
+      return;
+    }
+
+    _navigateByRole(role);
+  }
+
+  void _navigateByRole(String role) {
+    Widget? destination;
+
+    if (role == 'giang_vien') {
+      destination = const ClassManagementScreen();
+    } else if (role == 'sinh_vien') {
+      destination = const StudentDashboardScreen();
+    } else if (role == 'new_user') {
+      _showMessage('Tài khoản mới, vui lòng hoàn thiện thông tin đăng ký');
+      return;
+    } else {
+      _showMessage('Không xác định được phân quyền người dùng');
+      return;
+    }
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => destination!,
+      ),
+    );
   }
 
   String _extractExceptionMessage(Object error) {

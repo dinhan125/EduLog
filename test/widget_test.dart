@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:edulog/features/auth/data/auth_service.dart';
 import 'package:edulog/features/auth/presentation/login_screen.dart';

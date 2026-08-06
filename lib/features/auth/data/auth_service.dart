@@ -14,6 +14,9 @@ abstract class IAuthService {
 }
 
 class AuthService implements IAuthService {
+	static const String _googleServerClientId =
+			'750031630648-i0felvejddiht39h355veudcv3buj754.apps.googleusercontent.com';
+
 	AuthService({
 		FirebaseAuth? firebaseAuth,
 		FirebaseFirestore? firebaseFirestore,
@@ -33,7 +36,7 @@ class AuthService implements IAuthService {
 		}
 
 		// Khởi tạo Google Sign-In đúng một lần trước khi gọi authenticate hoặc signOut.
-		await _googleSignIn.initialize();
+		await _googleSignIn.initialize(serverClientId: _googleServerClientId);
 		_isGoogleSignInInitialized = true;
 	}
 

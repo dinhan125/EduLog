@@ -3,13 +3,21 @@ import 'package:provider/provider.dart';
 import 'providers/student_dashboard_provider.dart';
 import 'widgets/dashboard_header.dart';
 import 'widgets/class_list_item.dart';
+import '../data/repositories/mock_student_dashboard_repository_impl.dart';
+import '../domain/usecases/join_class_usecase.dart';
 
 class StudentDashboardScreen extends StatelessWidget {
   const StudentDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ChangeNotifierProvider<StudentDashboardProvider>(
+      create: (_) => StudentDashboardProvider(
+        joinClassUseCase: JoinClassUseCase(
+          MockStudentDashboardRepositoryImpl(),
+        ),
+      ),
+      child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FA), // Light background color
         body: Column(
           children: [
@@ -79,6 +87,7 @@ class StudentDashboardScreen extends StatelessWidget {
             ),
           ],
         ),
-      );
+      ),
+    );
   }
 }
