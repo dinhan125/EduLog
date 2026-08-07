@@ -10,7 +10,10 @@ final classControllerProvider = AsyncNotifierProvider<ClassController, List<Clas
 class ClassController extends AsyncNotifier<List<ClassModel>> {
   @override
   FutureOr<List<ClassModel>> build() {
-    return [];
+    return [
+      ClassModel(id: '1', name: 'Lập trình Mobile - KTPM K65', inviteCode: 'MOBILE65', groupCount: 4),
+      ClassModel(id: '2', name: 'Kiến trúc phần mềm', inviteCode: 'KTPM2025', groupCount: 0),
+    ];
   }
 
   Future<void> addClass(String name) async {

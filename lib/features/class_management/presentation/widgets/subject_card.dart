@@ -3,6 +3,7 @@ import '../../data/models/class_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/class_controller.dart';
 import 'invite_student_bottom_sheet.dart';
+import '../../../group_management/presentation/pages/group_list_screen.dart';
 
 class SubjectCard extends ConsumerWidget {
   final ClassModel classModel;
@@ -20,20 +21,29 @@ class SubjectCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => GroupListScreen(hasGroups: classModel.groupCount > 0),
           ),
-        ],
-      ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Dismissible(
@@ -77,7 +87,7 @@ class SubjectCard extends ConsumerWidget {
                   children: [
                     _buildTag('HK1-2025', const Color(0xFFE3F2FD), const Color(0xFF1976D2)),
                     const SizedBox(width: 8),
-                    _buildTag('0 NHÓM', const Color(0xFFE0F2F1), const Color(0xFF00796B)),
+                    _buildTag('${classModel.groupCount} NHÓM', const Color(0xFFE0F2F1), const Color(0xFF00796B)),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -91,7 +101,7 @@ class SubjectCard extends ConsumerWidget {
                         Icon(Icons.people_alt_outlined, size: 18, color: Colors.grey.shade600),
                         const SizedBox(width: 6),
                         Text(
-                          '0 nhóm',
+                          '${classModel.groupCount} nhóm',
                           style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
                         ),
                       ],
@@ -126,6 +136,7 @@ class SubjectCard extends ConsumerWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }

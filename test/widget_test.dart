@@ -1,7 +1,10 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_test/flutter_test.dart';
-// import 'package:edulog/features/auth/data/auth_service.dart';
-// import 'package:edulog/features/auth/presentation/login_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+// Đổi 'tên_project_của_bạn' thành tên thư mục dự án (ví dụ: edulog)
+
+
+import 'package:edulog/features/auth/data/auth_service.dart';
+import 'package:edulog/features/auth/presentation/login_screen.dart';
 
 // class _SmokeAuthService implements IAuthService {
 //   @override
