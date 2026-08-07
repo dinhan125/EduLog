@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/group_management_provider.dart';
 import '../widgets/member_item.dart';
+import 'question_result_screen.dart';
 
 class GroupDetailScreen extends StatelessWidget {
   final String classId;
@@ -139,6 +140,7 @@ class GroupDetailScreen extends StatelessWidget {
               if (group.joinRequests.isNotEmpty)
                 const SizedBox(height: 16),
 
+
               // 3. Kết quả Vấn đáp
               _buildSectionCard(
                 title: 'Kết quả Vấn đáp',
@@ -180,11 +182,19 @@ class GroupDetailScreen extends StatelessWidget {
                           child: Text('Đã chấm điểm', style: TextStyle(color: Colors.green.shade700, fontSize: 12, fontWeight: FontWeight.bold)),
                         ),
                         const SizedBox(height: 12),
-                        Row(
-                          children: const [
-                            Text('Xem chi tiết', style: TextStyle(color: Color(0xFF1976D2), fontSize: 13, fontWeight: FontWeight.w600)),
-                            Icon(Icons.chevron_right, size: 16, color: Color(0xFF1976D2)),
-                          ],
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const QuestionResultScreen()),
+                            );
+                          },
+                          child: Row(
+                            children: const [
+                              Text('Xem chi tiết', style: TextStyle(color: Color(0xFF1976D2), fontSize: 13, fontWeight: FontWeight.w600)),
+                              Icon(Icons.chevron_right, size: 16, color: Color(0xFF1976D2)),
+                            ],
+                          ),
                         ),
                       ],
                     ),

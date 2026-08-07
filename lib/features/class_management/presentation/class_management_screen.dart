@@ -5,7 +5,7 @@ import '../../auth/presentation/login_screen.dart';
 import '../domain/class_controller.dart';
 import 'widgets/subject_card.dart';
 import 'widgets/add_subject_bottom_sheet.dart';
-import '../../student_dashboard/presentation/student_dashboard_screen.dart';
+
 
 class ClassManagementScreen extends ConsumerWidget {
   const ClassManagementScreen({super.key, this.authService});
@@ -101,15 +101,7 @@ class ClassManagementScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              IconButton(
-                icon: const Icon(Icons.swap_horiz, color: Colors.white, size: 26),
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const StudentDashboardScreen()),
-                  );
-                },
-              ),
+
               IconButton(
                 tooltip: 'Đăng xuất',
                 icon: const Icon(Icons.exit_to_app, color: Colors.white70, size: 26),
