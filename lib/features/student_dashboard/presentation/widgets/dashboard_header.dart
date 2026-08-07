@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/student_dashboard_provider.dart';
-import '../../../class_management/presentation/class_management_screen.dart';
+
 
 class DashboardHeader extends StatefulWidget {
   const DashboardHeader({super.key});
@@ -121,17 +121,8 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                   ),
                 ],
               ),
+
               const SizedBox(width: 15),
-              IconButton(
-                icon: const Icon(Icons.swap_horiz, color: Colors.white, size: 28),
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ClassManagementScreen()),
-                  );
-                },
-              ),
-              const SizedBox(width: 5),
               const Icon(Icons.logout, color: Colors.white, size: 28),
             ],
           ),
