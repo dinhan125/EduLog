@@ -32,9 +32,7 @@ class ClassManagementScreen extends ConsumerWidget {
 
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute<void>(
-        builder: (BuildContext context) => LoginScreen(
-          authService: currentAuthService,
-        ),
+        builder: (BuildContext context) => const LoginScreen(),
       ),
       (Route<dynamic> route) => false,
     );
