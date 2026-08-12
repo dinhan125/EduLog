@@ -34,13 +34,22 @@ class GroupManagementProvider extends ChangeNotifier {
     return _joinRequests[groupId] ?? false;
   }
 
-  Future<void> initForClass(ClassEntity classItem) async {
+  Future<GroupEntity?> checkUserHasGroup(String classId, String uid) async {
+    try {
+      final fetchedGroups = await repository.getGroupsByClass(classId);
+      return fetchedGroups.firstWhere((g) => g.members.any((m) => m.id == uid));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> fetchGroups(String classId) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _groups = await repository.getGroupsByClass(classItem.id);
+      _groups = await repository.getGroupsByClass(classId);
       
       // Check if current user is in any group
       try {
@@ -51,12 +60,38 @@ class GroupManagementProvider extends ChangeNotifier {
         _currentGroup = null;
       }
       
+      if (_currentGroup != null) {
+        final memberUids = _currentGroup!.members.map((e) => e.id).toList();
+        final requestUids = _currentGroup!.joinRequests.map((e) => e.id).toList();
+        
+        final fetchedMembers = await repository.getUsersByUids(memberUids);
+        final fetchedRequests = await repository.getUsersByUids(requestUids);
+        
+        if (fetchedMembers.isNotEmpty) {
+          fetchedMembers[0] = MemberEntity(
+            id: fetchedMembers[0].id,
+            name: fetchedMembers[0].name,
+            studentId: fetchedMembers[0].studentId,
+            isLeader: true,
+          );
+        }
+        
+        _currentGroup = _currentGroup!.copyWith(
+          members: fetchedMembers,
+          joinRequests: fetchedRequests,
+        );
+      }
+      
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> initForClass(ClassEntity classItem) async {
+    await fetchGroups(classItem.id);
   }
 
   Future<void> requestJoin(String groupId) async {
@@ -112,5 +147,72 @@ class GroupManagementProvider extends ChangeNotifier {
   void leaveGroup() {
     _currentGroup = null;
     notifyListeners();
+  }
+
+  Future<void> approveRequestAsync(BuildContext context, String userId) async {
+    if (_currentGroup == null) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+    try {
+      await repository.acceptJoinRequest(_currentGroup!.id, userId);
+      approveRequest(userId);
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã duyệt yêu cầu')));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
+      }
+    }
+  }
+
+  Future<void> rejectRequestAsync(BuildContext context, String userId) async {
+    if (_currentGroup == null) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+    try {
+      await repository.rejectJoinRequest(_currentGroup!.id, userId);
+      rejectRequest(userId);
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã từ chối yêu cầu')));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
+      }
+    }
+  }
+
+  Future<void> leaveGroupAsync(BuildContext context, String classId) async {
+    if (_currentGroup == null) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+    try {
+      await repository.leaveGroup(_currentGroup!.id, currentUser.id);
+      leaveGroup(); // reset state
+      await fetchGroups(classId); // refetch
+      if (context.mounted) {
+        Navigator.pop(context); // Hide loading
+        Navigator.pop(context); // Pop back to dashboard
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
+      }
+    }
   }
 }

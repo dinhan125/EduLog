@@ -14,6 +14,14 @@ class _DashboardHeaderState extends State<DashboardHeader> {
   final TextEditingController _codeController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<StudentDashboardProvider>().loadUserName();
+    });
+  }
+
+  @override
   void dispose() {
     _codeController.dispose();
     super.dispose();
@@ -67,8 +75,8 @@ class _DashboardHeaderState extends State<DashboardHeader> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
+                  children: [
+                    const Text(
                       'SINH VIÊN',
                       style: TextStyle(
                         color: Colors.white70,
@@ -76,13 +84,17 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Text(
-                      'Nguyễn Minh Khoa',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Consumer<StudentDashboardProvider>(
+                      builder: (context, provider, child) {
+                        return Text(
+                          provider.userName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      }
                     ),
                   ],
                 ),

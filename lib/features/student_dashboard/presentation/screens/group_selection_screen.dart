@@ -116,7 +116,7 @@ class _GroupSelectionScreenState extends State<GroupSelectionScreen> {
                   padding: const EdgeInsets.all(16.0),
                   children: [
                     Text(
-                      '\${groups.length} nhóm hiện có',
+                      '${groups.length} nhóm hiện có',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
@@ -124,6 +124,17 @@ class _GroupSelectionScreenState extends State<GroupSelectionScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    if (groups.isEmpty)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: Text(
+                            'Chưa có nhóm nào trong lớp này',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                      )
+                    else
                     ...groups.map((group) => GroupCard(
                           group: group,
                           hasRequested: provider.hasRequestedToJoin(group.id),

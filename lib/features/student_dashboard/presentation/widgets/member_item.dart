@@ -121,9 +121,10 @@ class MemberItem extends StatelessWidget {
   }
 
   String _getInitials(String name) {
+    if (name.isEmpty) return '';
     final parts = name.trim().split(' ');
     if (parts.length > 1) {
-      return '\${parts.first[0]}\${parts.last[0]}'.toUpperCase();
+      return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
     }
     return name.substring(0, 1).toUpperCase();
   }
