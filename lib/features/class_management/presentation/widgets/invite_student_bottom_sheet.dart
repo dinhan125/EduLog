@@ -10,8 +10,8 @@ class InviteStudentBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Generate dummy invite code and link based on classModel
-    final inviteCode = classModel.inviteCode;
-    final inviteLink = 'edulog.app/join/$inviteCode';
+    final inviteCode = classModel.subjectCode;
+    final inviteLink = 'edulog.app/join/${classModel.id}';
 
     return Container(
       decoration: const BoxDecoration(
