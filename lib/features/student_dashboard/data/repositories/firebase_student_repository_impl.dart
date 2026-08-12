@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../domain/repositories/student_dashboard_repository.dart';
 import '../../domain/entities/class_entity.dart';
 import '../../domain/entities/group_entity.dart';
+import '../../domain/entities/member_entity.dart';
 import '../models/class_model.dart';
 import '../models/group_model.dart';
 
@@ -35,6 +36,19 @@ class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
   }
 
   @override
+  Future<String> getUserName() async {
+    try {
+      final doc = await _firestore.collection('users').doc(_currentUserId).get();
+      if (doc.exists) {
+        return doc.data()?['name'] ?? 'Sinh viên';
+      }
+    } catch (e) {
+      // handle error if needed
+    }
+    return 'Sinh viên';
+  }
+
+  @override
   Future<void> joinClass(String classCode) async {
     final query = await _firestore
         .collection('classes')
@@ -63,7 +77,7 @@ class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
   Future<List<GroupEntity>> getGroupsByClass(String classId) async {
     final snapshot = await _firestore
         .collection('groups')
-        .where('classId', isEqualTo: classId)
+        .where('ma_lop', isEqualTo: classId)
         .get();
 
     return snapshot.docs
@@ -74,11 +88,11 @@ class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
   @override
   Future<void> createGroup(String classId, String groupName) async {
     await _firestore.collection('groups').add({
-      'classId': classId,
-      'name': groupName,
-      'githubLink': '',
-      'docsLink': '',
-      'members': [_currentUserId], // Người tạo tự động vào nhóm
+      'ma_lop': classId,
+      'ten_nhom': groupName,
+      'truong_nhom_id': _currentUserId,
+      'thanh_vien': [_currentUserId],
+      'ngay_tao': FieldValue.serverTimestamp(),
       'pendingRequests': [],
       'maxMembers': 4,
     });
@@ -89,5 +103,63 @@ class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
     await _firestore.collection('groups').doc(groupId).update({
       'pendingRequests': FieldValue.arrayUnion([_currentUserId]),
     });
+  }
+
+  @override
+  Future<List<MemberEntity>> getUsersByUids(List<String> uids) async {
+    if (uids.isEmpty) return [];
+    List<MemberEntity> members = [];
+    for (var uid in uids) {
+      try {
+        final doc = await _firestore.collection('users').doc(uid).get();
+        if (doc.exists) {
+          final data = doc.data()!;
+          members.add(MemberEntity(
+            id: uid,
+            name: data['name'] ?? 'Sinh viên',
+            studentId: data['student_id'] ?? data['studentId'] ?? data['mssv'] ?? uid.substring(0, 8),
+          ));
+        } else {
+          members.add(MemberEntity(id: uid, name: 'Sinh viên', studentId: uid.substring(0, 8)));
+        }
+      } catch (e) {
+        members.add(MemberEntity(id: uid, name: 'Sinh viên', studentId: uid.substring(0, 8)));
+      }
+    }
+    return members;
+  }
+
+  @override
+  Future<void> acceptJoinRequest(String groupId, String studentUid) async {
+    await _firestore.collection('groups').doc(groupId).update({
+      'pendingRequests': FieldValue.arrayRemove([studentUid]),
+      'thanh_vien': FieldValue.arrayUnion([studentUid]),
+    });
+  }
+
+  @override
+  Future<void> rejectJoinRequest(String groupId, String studentUid) async {
+    await _firestore.collection('groups').doc(groupId).update({
+      'pendingRequests': FieldValue.arrayRemove([studentUid]),
+    });
+  }
+
+  @override
+  Future<void> leaveGroup(String groupId, String uid) async {
+    final docRef = _firestore.collection('groups').doc(groupId);
+    final doc = await docRef.get();
+    
+    if (doc.exists) {
+      final data = doc.data()!;
+      final List<dynamic> thanhVien = data['thanh_vien'] ?? [];
+      
+      if (thanhVien.length == 1 && thanhVien.contains(uid)) {
+        await docRef.delete();
+      } else {
+        await docRef.update({
+          'thanh_vien': FieldValue.arrayRemove([uid]),
+        });
+      }
+    }
   }
 }
