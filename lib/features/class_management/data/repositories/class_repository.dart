@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,9 +16,11 @@ class ClassRepository {
     required String teacherUid,
   }) async {
     try {
+      final inviteCode = _generateInviteCode(subjectCode);
       await _firestore.collection('classes').add({
         'ten_lop': className,
         'ma_mon': subjectCode,
+        'ma_moi': inviteCode,
         'giang_vien_id': teacherUid,
         'danh_sach_sinh_vien': [],
         'ngay_tao': FieldValue.serverTimestamp(),
@@ -75,5 +78,16 @@ class ClassRepository {
       debugPrint('Error joining class ($classId): $e');
       rethrow;
     }
+  }
+
+  String _generateInviteCode(String subjectCode) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = Random();
+    final randomString = String.fromCharCodes(Iterable.generate(
+      6,
+      (_) => chars.codeUnitAt(random.nextInt(chars.length)),
+    ));
+    final formattedSubject = subjectCode.toUpperCase().replaceAll(' ', '-');
+    return '$formattedSubject-$randomString';
   }
 }

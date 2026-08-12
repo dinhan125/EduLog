@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/class_model.dart';
 import '../data/repositories/class_repository.dart';
@@ -8,7 +9,7 @@ final classControllerProvider = AsyncNotifierProvider<ClassController, List<Clas
 });
 
 class ClassController extends AsyncNotifier<List<ClassModel>> {
-  final String _mockTeacherUid = 'teacher_123';
+  String get _teacherUid => FirebaseAuth.instance.currentUser?.email ?? 'default_teacher@example.com';
 
   @override
   FutureOr<List<ClassModel>> build() async {
@@ -17,7 +18,7 @@ class ClassController extends AsyncNotifier<List<ClassModel>> {
 
   Future<List<ClassModel>> _fetchClasses() async {
     final repository = ref.read(classRepositoryProvider);
-    final classesData = await repository.getClassesForTeacher(_mockTeacherUid);
+    final classesData = await repository.getClassesForTeacher(_teacherUid);
     return classesData.map((data) => ClassModel.fromMap(data)).toList();
   }
 
@@ -29,7 +30,7 @@ class ClassController extends AsyncNotifier<List<ClassModel>> {
       await repository.createClass(
         className: name,
         subjectCode: subjectCode,
-        teacherUid: _mockTeacherUid,
+        teacherUid: _teacherUid,
       );
       
       // Re-fetch classes after adding
