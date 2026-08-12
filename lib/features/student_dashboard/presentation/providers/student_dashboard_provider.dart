@@ -21,6 +21,18 @@ class StudentDashboardProvider extends ChangeNotifier {
   List<ClassEntity> _classes = [];
   List<ClassEntity> get classes => _classes;
 
+  String _userName = 'Sinh viên';
+  String get userName => _userName;
+
+  Future<void> loadUserName() async {
+    try {
+      _userName = await repository.getUserName();
+      notifyListeners();
+    } catch (e) {
+      // Handle error if necessary
+    }
+  }
+
   Future<void> loadJoinedClasses() async {
     _isLoading = true;
     _errorMessage = null;

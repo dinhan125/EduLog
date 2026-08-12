@@ -16,7 +16,7 @@ class GroupModel extends GroupEntity {
 
   factory GroupModel.fromJson(Map<String, dynamic> json, String id) {
     // Firestore stores list of UIDs for members and pendingRequests
-    final List<dynamic> memberIds = json['members'] ?? [];
+    final List<dynamic> memberIds = json['thanh_vien'] ?? [];
     final List<dynamic> requestIds = json['pendingRequests'] ?? [];
 
     final List<MemberEntity> parsedMembers = memberIds.map((uid) {
@@ -37,8 +37,8 @@ class GroupModel extends GroupEntity {
 
     return GroupModel(
       id: id,
-      classId: json['classId'] as String? ?? '',
-      name: json['name'] as String? ?? '',
+      classId: json['ma_lop'] as String? ?? '',
+      name: json['ten_nhom'] as String? ?? '',
       maxMembers: json['maxMembers'] as int? ?? 4,
       githubUrl: json['githubLink'] as String?,
       docsUrl: json['docsLink'] as String?,
@@ -50,12 +50,13 @@ class GroupModel extends GroupEntity {
 
   Map<String, dynamic> toJson() {
     return {
-      'classId': classId,
-      'name': name,
+      'ma_lop': classId,
+      'ten_nhom': name,
+      'truong_nhom_id': members.isNotEmpty ? members.first.id : '',
+      'thanh_vien': members.map((e) => e.id).toList(),
       'maxMembers': maxMembers,
       'githubLink': githubUrl,
       'docsLink': docsUrl,
-      'members': members.map((e) => e.id).toList(),
       'pendingRequests': joinRequests.map((e) => e.id).toList(),
     };
   }

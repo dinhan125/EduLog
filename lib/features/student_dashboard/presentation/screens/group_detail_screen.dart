@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/group_management_provider.dart';
 import '../widgets/member_item.dart';
-import 'question_result_screen.dart';
 
 class GroupDetailScreen extends StatelessWidget {
   final String classId;
@@ -23,8 +22,7 @@ class GroupDetailScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              provider.leaveGroup();
-              Navigator.pop(context); // Go back to Selection or Dashboard
+              provider.leaveGroupAsync(context, classId);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Có, rời nhóm', style: TextStyle(color: Colors.white)),
@@ -132,8 +130,8 @@ class GroupDetailScreen extends StatelessWidget {
                     children: group.joinRequests.map((req) => MemberItem(
                       member: req,
                       showActions: true,
-                      onApprove: () => provider.approveRequest(req.id),
-                      onReject: () => provider.rejectRequest(req.id),
+                      onApprove: () => provider.approveRequestAsync(context, req.id),
+                      onReject: () => provider.rejectRequestAsync(context, req.id),
                     )).toList(),
                   ),
                 ),
@@ -141,7 +139,8 @@ class GroupDetailScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
 
-              // 3. Kết quả Vấn đáp
+              // 3. Kết quả Vấn đáp (Đã ẩn vì Database chưa có)
+              /*
               _buildSectionCard(
                 title: 'Kết quả Vấn đáp',
                 icon: Icons.military_tech_outlined,
@@ -202,6 +201,7 @@ class GroupDetailScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 32),
+              */
               
               // 4. Rời nhóm
               SizedBox(

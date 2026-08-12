@@ -65,7 +65,7 @@ class GroupCard extends StatelessWidget {
               Icon(Icons.people_outline, size: 16, color: Colors.grey.shade600),
               const SizedBox(width: 6),
               Text(
-                '\${group.members.length}/\${group.maxMembers} thành viên',
+                '${group.members.length}/${group.maxMembers} thành viên',
                 style: TextStyle(
                   color: Colors.grey.shade600,
                   fontSize: 13,

@@ -35,24 +35,37 @@ class ClassListItem extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            final provider = context.read<GroupManagementProvider>();
-            provider.initForClass(classItem);
+          onTap: () async {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) => const Center(child: CircularProgressIndicator()),
+            );
             
-            if (provider.currentGroup != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => GroupDetailScreen(classId: classItem.id),
-                ),
-              );
-            } else {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => GroupSelectionScreen(classItem: classItem),
-                ),
-              );
+            final provider = context.read<GroupManagementProvider>();
+            final uid = provider.currentUser.id;
+            
+            final userGroup = await provider.checkUserHasGroup(classItem.id, uid);
+            await provider.fetchGroups(classItem.id);
+            
+            if (context.mounted) {
+              Navigator.pop(context); // Hide loading
+              
+              if (userGroup != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => GroupDetailScreen(classId: classItem.id),
+                  ),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => GroupSelectionScreen(classItem: classItem),
+                  ),
+                );
+              }
             }
           },
           child: Column(
