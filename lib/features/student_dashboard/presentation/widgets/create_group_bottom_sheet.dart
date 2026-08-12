@@ -30,20 +30,23 @@ class _CreateGroupBottomSheetState extends State<CreateGroupBottomSheet> {
       _isCreating = true;
     });
 
-    // Giả lập call API
-    await Future.delayed(const Duration(seconds: 1));
-
     if (mounted) {
-      context.read<GroupManagementProvider>().createGroup(
+      final provider = context.read<GroupManagementProvider>();
+      await provider.createGroup(
             widget.classId,
             _nameController.text.trim(),
             _githubController.text.trim(),
             _docsController.text.trim(),
           );
       
-      Navigator.pop(context); // Close bottom sheet
+      if (!mounted) return;
+      Navigator.pop(context); // 1. Close bottom sheet
       
-      // Chuyển sang màn hình chi tiết nhóm
+      // 2. Fetch lại danh sách nhóm
+      await provider.fetchGroups(widget.classId);
+
+      if (!mounted) return;
+      // 3. Chuyển sang màn hình chi tiết nhóm
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
