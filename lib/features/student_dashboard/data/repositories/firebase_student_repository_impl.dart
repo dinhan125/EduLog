@@ -26,7 +26,7 @@ class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
   Future<List<ClassEntity>> getJoinedClasses() async {
     final snapshot = await _firestore
         .collection('classes')
-        .where('studentIds', arrayContains: _currentUserId)
+        .where('danh_sach_sinh_vien', arrayContains: _currentUserId)
         .get();
     
     return snapshot.docs
@@ -38,7 +38,7 @@ class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
   Future<void> joinClass(String classCode) async {
     final query = await _firestore
         .collection('classes')
-        .where('code', isEqualTo: classCode)
+        .where('ma_moi', isEqualTo: classCode)
         .limit(1)
         .get();
 
@@ -47,8 +47,15 @@ class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
     }
 
     final classDoc = query.docs.first;
+    final data = classDoc.data();
+    final List<dynamic> danhSachSinhVien = data['danh_sach_sinh_vien'] ?? [];
+
+    if (danhSachSinhVien.contains(_currentUserId)) {
+      throw Exception('Bạn đã tham gia lớp học này rồi.');
+    }
+
     await classDoc.reference.update({
-      'studentIds': FieldValue.arrayUnion([_currentUserId]),
+      'danh_sach_sinh_vien': FieldValue.arrayUnion([_currentUserId]),
     });
   }
 
