@@ -11,6 +11,7 @@ class AddSubjectBottomSheet extends ConsumerStatefulWidget {
 
 class _AddSubjectBottomSheetState extends ConsumerState<AddSubjectBottomSheet> {
   final _nameController = TextEditingController();
+  final _subjectCodeController = TextEditingController();
   String _selectedSemester = 'HK1-2025';
   
   final List<String> _semesters = ['HK1-2025', 'HK2-2024', 'HK1-2024'];
@@ -21,21 +22,26 @@ class _AddSubjectBottomSheetState extends ConsumerState<AddSubjectBottomSheet> {
     _nameController.addListener(() {
       setState(() {});
     });
+    _subjectCodeController.addListener(() {
+      setState(() {});
+    });
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _subjectCodeController.dispose();
     super.dispose();
   }
 
   Future<void> _createSubject() async {
-    if (_nameController.text.trim().isEmpty) return;
+    if (_nameController.text.trim().isEmpty || _subjectCodeController.text.trim().isEmpty) return;
 
     final name = _nameController.text.trim();
+    final subjectCode = _subjectCodeController.text.trim();
 
     // Call new Clean Architecture controller
-    await ref.read(classControllerProvider.notifier).addClass(name);
+    await ref.read(classControllerProvider.notifier).addClass(name, subjectCode);
     
     if (mounted) {
       Navigator.of(context).pop();
@@ -50,7 +56,7 @@ class _AddSubjectBottomSheetState extends ConsumerState<AddSubjectBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final isValid = _nameController.text.trim().isNotEmpty;
+    final isValid = _nameController.text.trim().isNotEmpty && _subjectCodeController.text.trim().isNotEmpty;
     final classState = ref.watch(classControllerProvider);
     final isLoading = classState.isLoading;
 
@@ -140,6 +146,43 @@ class _AddSubjectBottomSheetState extends ConsumerState<AddSubjectBottomSheet> {
                 controller: _nameController,
                 decoration: InputDecoration(
                   hintText: 'VD: Lập trình Web, Cơ sở Dữ liệu...',
+                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF1976D2)),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Subject Code Field
+              RichText(
+                text: const TextSpan(
+                  text: 'MÃ MÔN HỌC ',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black54,
+                  ),
+                  children: [
+                    TextSpan(text: '*', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _subjectCodeController,
+                decoration: InputDecoration(
+                  hintText: 'VD: INT3134, CSE401...',
                   hintStyle: TextStyle(color: Colors.grey.shade400),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),

@@ -1,24 +1,79 @@
-import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/class_model.dart';
 
 final classRepositoryProvider = Provider<ClassRepository>((ref) {
   return ClassRepository();
 });
 
 class ClassRepository {
-  Future<ClassModel> createClass(String className) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-    final random = Random();
-    final inviteCode = 'MOB-${random.nextInt(9000) + 1000}-${random.nextInt(9000) + 1000}';
-    final id = DateTime.now().millisecondsSinceEpoch.toString();
+  Future<void> createClass({
+    required String className,
+    required String subjectCode,
+    required String teacherUid,
+  }) async {
+    try {
+      await _firestore.collection('classes').add({
+        'ten_lop': className,
+        'ma_mon': subjectCode,
+        'giang_vien_id': teacherUid,
+        'danh_sach_sinh_vien': [],
+        'ngay_tao': FieldValue.serverTimestamp(),
+      });
+      debugPrint('Class created successfully: $className');
+    } catch (e) {
+      debugPrint('Error creating class: $e');
+      rethrow;
+    }
+  }
 
-    return ClassModel(
-      id: id,
-      name: className,
-      inviteCode: inviteCode,
-    );
+  Future<List<Map<String, dynamic>>> getClassesForTeacher(String teacherUid) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('classes')
+          .where('giang_vien_id', isEqualTo: teacherUid)
+          .get();
+
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id; // Inject the Document ID
+        return data;
+      }).toList();
+    } catch (e) {
+      debugPrint('Error getting classes for teacher ($teacherUid): $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getClassesForStudent(String studentId) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('classes')
+          .where('danh_sach_sinh_vien', arrayContains: studentId)
+          .get();
+
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id; // Inject the Document ID
+        return data;
+      }).toList();
+    } catch (e) {
+      debugPrint('Error getting classes for student ($studentId): $e');
+      rethrow;
+    }
+  }
+
+  Future<void> joinClass(String classId, String studentId) async {
+    try {
+      await _firestore.collection('classes').doc(classId).update({
+        'danh_sach_sinh_vien': FieldValue.arrayUnion([studentId]),
+      });
+      debugPrint('Student $studentId joined class $classId successfully');
+    } catch (e) {
+      debugPrint('Error joining class ($classId): $e');
+      rethrow;
+    }
   }
 }
