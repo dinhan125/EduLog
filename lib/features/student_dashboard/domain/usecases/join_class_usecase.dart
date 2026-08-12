@@ -1,4 +1,3 @@
-import '../entities/class_entity.dart';
 import '../repositories/student_dashboard_repository.dart';
 
 class JoinClassUseCase {
@@ -6,7 +5,7 @@ class JoinClassUseCase {
 
   JoinClassUseCase(this.repository);
 
-  Future<ClassEntity> call(String classCode) {
+  Future<void> call(String classCode) {
     if (classCode.isEmpty) {
       throw Exception('Mã lớp không được để trống');
     }
