@@ -1,6 +1,7 @@
 class ClassEntity {
   final String id;
   final String code;
+  final String? inviteCode;
   final String name;
   final String lecturer;
   final int studentCount;
@@ -10,6 +11,7 @@ class ClassEntity {
   ClassEntity({
     required this.id,
     required this.code,
+    this.inviteCode,
     required this.name,
     required this.lecturer,
     required this.studentCount,

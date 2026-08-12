@@ -142,7 +142,7 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                     controller: _codeController,
                     style: const TextStyle(color: Colors.white),
                     decoration: const InputDecoration(
-                      hintText: 'Nhập mã tham gia lớp...',
+                      hintText: 'Nhập mã mời tham gia lớp...',
                       hintStyle: TextStyle(color: Colors.white54),
                       prefixIcon: Icon(Icons.add, color: Colors.white54),
                       border: InputBorder.none,
