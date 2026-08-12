@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../class_management/data/models/class_model.dart';
+import '../../../class_management/presentation/widgets/invite_student_bottom_sheet.dart';
+
 class GroupListScreen extends ConsumerWidget {
-  final bool hasGroups;
-  const GroupListScreen({super.key, required this.hasGroups});
+  final ClassModel classModel;
+  const GroupListScreen({super.key, required this.classModel});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final hasGroups = classModel.groupCount > 0;
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      appBar: _buildAppBar(context, hasGroups),
-      body: hasGroups ? _buildListState() : _buildEmptyState(),
+      appBar: _buildAppBar(context, hasGroups, classModel.name),
+      body: hasGroups ? _buildListState() : _buildEmptyState(context),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, bool hasGroups) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, bool hasGroups, String className) {
     return PreferredSize(
       preferredSize: Size.fromHeight(hasGroups ? 140 : 80),
       child: Container(
@@ -41,8 +45,8 @@ class GroupListScreen extends ConsumerWidget {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
+                    children: [
+                      const Text(
                         'LẬP TRÌNH MOBILE · HK1 2025',
                         style: TextStyle(
                           color: Colors.white70,
@@ -51,8 +55,8 @@ class GroupListScreen extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        'Danh sách nhóm',
-                        style: TextStyle(
+                        className,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -114,7 +118,7 @@ class GroupListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -181,7 +185,14 @@ class GroupListScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => InviteStudentBottomSheet(classModel: classModel),
+                );
+              },
               icon: const Icon(Icons.person_add, size: 20),
               label: const Text('Mời sinh viên', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
