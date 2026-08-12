@@ -26,7 +26,7 @@ class SubjectCard extends ConsumerWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => GroupListScreen(hasGroups: classModel.groupCount > 0),
+            builder: (context) => GroupListScreen(classModel: classModel),
           ),
         );
       },
