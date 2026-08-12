@@ -41,7 +41,6 @@ class ClassManagementScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final classesState = ref.watch(classControllerProvider);
-    final classes = classesState.value ?? [];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA), // Light grey background
@@ -185,26 +184,38 @@ class ClassManagementScreen extends ConsumerWidget {
 
           // Subject List
           Expanded(
-            child: classes.isEmpty
-                ? const Center(child: Text('Chưa có môn học nào.'))
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: classes.length,
-                    itemBuilder: (context, index) {
-                      return SubjectCard(classModel: classes[index]);
-                    },
-                  ),
-          ),
-
-          // End of list indicator
-          if (classes.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20.0),
-              child: Text(
-                'Bạn đã xem hết danh sách.',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+            child: classesState.when(
+              data: (classes) {
+                if (classes.isEmpty) {
+                  return const Center(child: Text('Chưa có môn học nào.'));
+                }
+                return Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: classes.length,
+                        itemBuilder: (context, index) {
+                          return SubjectCard(classModel: classes[index]);
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20.0),
+                      child: Text(
+                        'Bạn đã xem hết danh sách.',
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                      ),
+                    ),
+                  ],
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(
+                child: Text('Lỗi: $error', style: const TextStyle(color: Colors.red)),
               ),
             ),
+          ),
         ],
       ),
     );
