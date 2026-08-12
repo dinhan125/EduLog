@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'providers/student_dashboard_provider.dart';
 import 'widgets/dashboard_header.dart';
 import 'widgets/class_list_item.dart';
-import '../data/repositories/mock_student_dashboard_repository_impl.dart';
+import '../data/repositories/firebase_student_repository_impl.dart';
 import '../domain/usecases/join_class_usecase.dart';
 
 class StudentDashboardScreen extends StatelessWidget {
@@ -12,11 +12,13 @@ class StudentDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<StudentDashboardProvider>(
-      create: (_) => StudentDashboardProvider(
-        joinClassUseCase: JoinClassUseCase(
-          MockStudentDashboardRepositoryImpl(),
-        ),
-      ),
+      create: (_) {
+        final repository = FirebaseStudentRepositoryImpl();
+        return StudentDashboardProvider(
+          repository: repository,
+          joinClassUseCase: JoinClassUseCase(repository),
+        )..loadJoinedClasses();
+      },
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FA), // Light background color
         body: Column(
@@ -63,6 +65,27 @@ class StudentDashboardScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 16),
+                      if (provider.isLoading)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(20.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      else if (provider.classes.isEmpty)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(40.0),
+                            child: Text(
+                              'Chưa có dữ liệu',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        )
+                      else
                       ...provider.classes.asMap().entries.map((entry) {
                         final index = entry.key;
                         final classItem = entry.value;

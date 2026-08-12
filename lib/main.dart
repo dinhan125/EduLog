@@ -5,7 +5,7 @@ import 'features/student_dashboard/presentation/providers/student_dashboard_prov
 import 'features/student_dashboard/presentation/providers/group_management_provider.dart';
 import 'features/student_dashboard/presentation/providers/student_performance_provider.dart';
 import 'features/student_dashboard/domain/usecases/join_class_usecase.dart';
-import 'features/student_dashboard/data/repositories/mock_student_dashboard_repository_impl.dart';
+import 'features/student_dashboard/data/repositories/firebase_student_repository_impl.dart';
 import 'package:firebase_core/firebase_core.dart'; // Thêm dòng này
 import 'firebase_options.dart'; // Thêm dòng này (đã có sẵn trong dự án)
 import 'features/auth/presentation/login_screen.dart';
@@ -25,14 +25,19 @@ void main() async {
       child: MultiProvider(
         providers: [
           ChangeNotifierProvider(
-            create: (_) => GroupManagementProvider(),
+            create: (_) {
+              final repository = FirebaseStudentRepositoryImpl();
+              return GroupManagementProvider(repository: repository);
+            },
           ),
           ChangeNotifierProvider(
-            create: (_) => StudentDashboardProvider(
-              joinClassUseCase: JoinClassUseCase(
-                MockStudentDashboardRepositoryImpl(),
-              ),
-            ),
+            create: (_) {
+              final repository = FirebaseStudentRepositoryImpl();
+              return StudentDashboardProvider(
+                repository: repository,
+                joinClassUseCase: JoinClassUseCase(repository),
+              );
+            },
           ),
           ChangeNotifierProvider(
             create: (_) => StudentPerformanceProvider(),
