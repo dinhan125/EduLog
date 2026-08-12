@@ -35,6 +35,7 @@ class _CreateGroupBottomSheetState extends State<CreateGroupBottomSheet> {
 
     if (mounted) {
       context.read<GroupManagementProvider>().createGroup(
+            widget.classId,
             _nameController.text.trim(),
             _githubController.text.trim(),
             _docsController.text.trim(),
