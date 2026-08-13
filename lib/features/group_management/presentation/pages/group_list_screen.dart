@@ -5,6 +5,7 @@ import '../../../class_management/data/models/class_model.dart';
 import '../../../class_management/presentation/widgets/invite_student_bottom_sheet.dart';
 import '../../../student_dashboard/domain/entities/group_entity.dart';
 import '../../data/repositories/group_repository.dart';
+import 'group_detail_screen.dart';
 
 final classGroupsProvider = FutureProvider.family<List<GroupEntity>, String>((ref, classId) async {
   final repository = ref.read(groupRepositoryProvider);
@@ -287,7 +288,7 @@ class GroupListScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             itemCount: groups.length,
             itemBuilder: (context, index) {
-              return _buildGroupCard(groups[index]);
+              return _buildGroupCard(context, groups[index]);
             },
           ),
         ),
@@ -295,11 +296,18 @@ class GroupListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildGroupCard(GroupEntity group) {
+  Widget _buildGroupCard(BuildContext context, GroupEntity group) {
     final bool isCompleted = group.isFull; // Temporary logic to prevent dead code
     
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => GroupDetailScreen(group: group)),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -351,7 +359,7 @@ class GroupListScreen extends ConsumerWidget {
                   iconColor: Colors.grey.shade700,
                   textColor: Colors.grey.shade800,
                 ),
-                if (group.githubUrl != null && group.githubUrl!.isNotEmpty) ...[
+                if (group.githubLink != null && group.githubLink!.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   _buildChip(
                     icon: Icons.code,
@@ -361,7 +369,7 @@ class GroupListScreen extends ConsumerWidget {
                     textColor: const Color(0xFF1976D2),
                   ),
                 ],
-                if (group.docsUrl != null && group.docsUrl!.isNotEmpty) ...[
+                if (group.docsLink != null && group.docsLink!.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   _buildChip(
                     icon: Icons.description,
@@ -395,7 +403,7 @@ class GroupListScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildChip({
