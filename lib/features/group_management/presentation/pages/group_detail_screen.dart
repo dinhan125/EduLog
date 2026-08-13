@@ -107,8 +107,8 @@ class GroupDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildProjectInfoCard(GroupEntity group) {
-    final githubLink = group.githubLink; 
-    final docsLink = group.docsLink;
+    final githubUrl = group.githubUrl; 
+    final docsUrl = group.docsUrl;
 
     return Container(
       width: double.infinity,
@@ -162,7 +162,7 @@ class GroupDetailScreen extends ConsumerWidget {
               _buildLinkChip(
                 icon: Icons.code,
                 text: 'GitHub đã link',
-                link: githubLink,
+                link: githubUrl,
                 activeBgColor: const Color(0xFFE3F2FD),
                 activeTextColor: const Color(0xFF1565C0),
               ),
@@ -170,7 +170,7 @@ class GroupDetailScreen extends ConsumerWidget {
               _buildLinkChip(
                 icon: Icons.description,
                 text: 'Docs đã link',
-                link: docsLink,
+                link: docsUrl,
                 activeBgColor: const Color(0xFFE8F5E9),
                 activeTextColor: const Color(0xFF2E7D32),
               ),
