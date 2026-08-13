@@ -36,4 +36,62 @@ class FirebaseSeeder {
       rethrow;
     }
   }
+
+  static Future<void> seedMockData(String classId) async {
+    final firestore = FirebaseFirestore.instance;
+
+    // 1. Tạo Fake Users
+    final List<String> fakeUids = [
+      'fake_uid_1',
+      'fake_uid_2',
+      'fake_uid_3',
+      'fake_uid_4',
+      'fake_uid_5',
+    ];
+
+    final List<String> realNames = [
+      "Đỗ Thanh Mai", 
+      "Hoàng Mai Tâm", 
+      "Lê Hoàng Anh", 
+      "Phạm Văn Đức", 
+      "Vũ Thị Hoa"
+    ];
+
+    for (int i = 0; i < fakeUids.length; i++) {
+      await firestore.collection('users').doc(fakeUids[i]).set({
+        'name': realNames[i],
+        'email': 'fake${i + 1}@e.tlu.edu.vn',
+        'studentId': '205106000${i + 1}',
+        'role': 'sinh_vien',
+      }, SetOptions(merge: true));
+    }
+
+    // 2. Thêm vào Lớp học
+    await firestore.collection('classes').doc(classId).update({
+      'danh_sach_sinh_vien': FieldValue.arrayUnion(fakeUids),
+    });
+
+    // 3. Tạo Fake Groups (Nhóm) và gán User
+    // Nhóm 1 (Nhóm đã đủ người)
+    await firestore.collection('groups').doc('fake_group_1_$classId').set({
+      'ma_lop': classId,
+      'maxMembers': 4,
+      'ngay_tao': FieldValue.serverTimestamp(),
+      'ten_nhom': 'Nhóm 1 - Ứng dụng Edulog',
+      'truong_nhom_id': 'fake_uid_1',
+      'thanh_vien': ['fake_uid_1', 'fake_uid_2', 'fake_uid_3'],
+      'pendingRequests': [],
+    });
+
+    // Nhóm 2 (Nhóm đang có người xin vào)
+    await firestore.collection('groups').doc('fake_group_2_$classId').set({
+      'ma_lop': classId,
+      'maxMembers': 4,
+      'ngay_tao': FieldValue.serverTimestamp(),
+      'ten_nhom': 'Nhóm 2 - Hệ thống Quản lý',
+      'truong_nhom_id': 'fake_uid_4',
+      'thanh_vien': ['fake_uid_4'],
+      'pendingRequests': ['fake_uid_5'],
+    });
+  }
 }
