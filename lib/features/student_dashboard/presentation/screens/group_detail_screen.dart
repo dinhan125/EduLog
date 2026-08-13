@@ -84,11 +84,11 @@ class GroupDetailScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Row(
                   children: [
-                    if (group.githubUrl != null)
+                    if (group.githubLink != null)
                       Expanded(child: _buildHeaderAction(Icons.code, 'GitHub')),
-                    if (group.githubUrl != null && group.docsUrl != null)
+                    if (group.githubLink != null && group.docsLink != null)
                       const SizedBox(width: 12),
-                    if (group.docsUrl != null)
+                    if (group.docsLink != null)
                       Expanded(child: _buildHeaderAction(Icons.description_outlined, 'Google Docs')),
                   ],
                 ),
