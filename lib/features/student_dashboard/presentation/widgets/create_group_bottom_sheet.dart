@@ -32,27 +32,39 @@ class _CreateGroupBottomSheetState extends State<CreateGroupBottomSheet> {
 
     if (mounted) {
       final provider = context.read<GroupManagementProvider>();
-      await provider.createGroup(
-            widget.classId,
-            _nameController.text.trim(),
-            _githubController.text.trim(),
-            _docsController.text.trim(),
-          );
-      
-      if (!mounted) return;
-      Navigator.pop(context); // 1. Close bottom sheet
-      
-      // 2. Fetch lại danh sách nhóm
-      await provider.fetchGroups(widget.classId);
+      try {
+        final newGroup = await provider.createGroup(
+              widget.classId,
+              _nameController.text.trim(),
+              _githubController.text.trim(),
+              _docsController.text.trim(),
+            );
+        
+        if (!mounted) return;
+        Navigator.pop(context); // 1. Close bottom sheet
+        
+        // 2. Fetch lại danh sách nhóm và set current group
+        await provider.fetchGroups(widget.classId);
+        provider.selectGroup(newGroup);
 
-      if (!mounted) return;
-      // 3. Chuyển sang màn hình chi tiết nhóm
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => GroupDetailScreen(classId: widget.classId),
-        ),
-      );
+        if (!mounted) return;
+        // 3. Chuyển sang màn hình chi tiết nhóm
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => GroupDetailScreen(classId: widget.classId),
+          ),
+        );
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isCreating = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Lỗi: $e')),
+          );
+        }
+      }
     }
   }
 

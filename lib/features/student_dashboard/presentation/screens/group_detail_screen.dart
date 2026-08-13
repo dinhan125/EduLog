@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/group_management_provider.dart';
 import '../widgets/member_item.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../domain/entities/group_entity.dart';
+import '../../domain/entities/member_entity.dart';
 
 class GroupDetailScreen extends StatelessWidget {
   final String classId;
@@ -29,6 +33,67 @@ class GroupDetailScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showEditLinksDialog(BuildContext context, GroupEntity group) {
+    final githubController = TextEditingController(text: group.githubUrl);
+    final docsController = TextEditingController(text: group.docsUrl);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cập nhật Link'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: githubController,
+              decoration: const InputDecoration(labelText: 'GitHub Link'),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: docsController,
+              decoration: const InputDecoration(labelText: 'Google Docs Link'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                await FirebaseFirestore.instance.collection('groups').doc(group.id).update({
+                  'link_github': githubController.text.trim(),
+                  'link_docs': docsController.text.trim(),
+                });
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã cập nhật link')));
+                  context.read<GroupManagementProvider>().fetchGroups(classId); // Refresh
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
+                }
+              }
+            },
+            child: const Text('Lưu'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showInviteModal(BuildContext context, GroupManagementProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => _InviteMemberSheet(classId: classId, provider: provider),
     );
   }
 
@@ -74,6 +139,12 @@ class GroupDetailScreen extends StatelessWidget {
             ),
             actions: [
               IconButton(
+                iconSize: 22,
+                padding: const EdgeInsets.all(8),
+                icon: const Icon(Icons.edit, color: Colors.white),
+                onPressed: () => _showEditLinksDialog(context, group),
+              ),
+              IconButton(
                 icon: const Icon(Icons.notifications_none, color: Colors.white),
                 onPressed: () {},
               ),
@@ -85,11 +156,11 @@ class GroupDetailScreen extends StatelessWidget {
                 child: Row(
                   children: [
                     if (group.githubUrl != null)
-                      Expanded(child: _buildHeaderAction(Icons.code, 'GitHub')),
+                      Expanded(child: _buildHeaderAction(context, Icons.code, 'GitHub', group.githubUrl)),
                     if (group.githubUrl != null && group.docsUrl != null)
                       const SizedBox(width: 12),
                     if (group.docsUrl != null)
-                      Expanded(child: _buildHeaderAction(Icons.description_outlined, 'Google Docs')),
+                      Expanded(child: _buildHeaderAction(context, Icons.description_outlined, 'Google Docs', group.docsUrl)),
                   ],
                 ),
               ),
@@ -103,7 +174,7 @@ class GroupDetailScreen extends StatelessWidget {
                 title: 'Thành viên (${group.members.length}/${group.maxMembers})',
                 icon: Icons.people_outline,
                 action: ElevatedButton.icon(
-                  onPressed: group.isFull ? null : () {},
+                  onPressed: group.isFull ? null : () => _showInviteModal(context, provider),
                   icon: const Icon(Icons.person_add, size: 16),
                   label: const Text('Mời vào nhóm', style: TextStyle(fontSize: 12)),
                   style: ElevatedButton.styleFrom(
@@ -225,25 +296,43 @@ class GroupDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeaderAction(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: Colors.white, size: 16),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(width: 4),
-          const Icon(Icons.open_in_new, color: Colors.white, size: 12),
-        ],
+  Widget _buildHeaderAction(BuildContext context, IconData icon, String label, String? url) {
+    return InkWell(
+      onTap: () async {
+        if (url == null || url.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Chưa có link')));
+          return;
+        }
+        final uri = Uri.parse(url);
+        final canLaunch = await canLaunchUrl(uri);
+        
+        if (!context.mounted) return;
+
+        if (canLaunch) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Không thể mở link')));
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 16),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.open_in_new, color: Colors.white, size: 12),
+          ],
+        ),
       ),
     );
   }
@@ -297,6 +386,102 @@ class GroupDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           content,
+        ],
+      ),
+    );
+  }
+}
+
+class _InviteMemberSheet extends StatefulWidget {
+  final String classId;
+  final GroupManagementProvider provider;
+  const _InviteMemberSheet({required this.classId, required this.provider});
+
+  @override
+  State<_InviteMemberSheet> createState() => _InviteMemberSheetState();
+}
+
+class _InviteMemberSheetState extends State<_InviteMemberSheet> {
+  bool _isLoading = true;
+  List<MemberEntity> _students = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      final students = await widget.provider.repository.getStudentsWithoutGroup(widget.classId);
+      if (mounted) {
+        setState(() {
+          _students = students;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      height: MediaQuery.of(context).size.height * 0.6,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Mời vào nhóm', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _students.isEmpty
+                    ? const Center(child: Text('Không có sinh viên nào chưa có nhóm'))
+                    : ListView.builder(
+                        itemCount: _students.length,
+                        itemBuilder: (context, index) {
+                          final student = _students[index];
+                          return ListTile(
+                            leading: CircleAvatar(
+                              child: Text(student.name.substring(0, 1).toUpperCase()),
+                            ),
+                            title: Text(student.name),
+                            subtitle: Text(student.studentId),
+                            trailing: OutlinedButton(
+                              onPressed: () async {
+                                final group = widget.provider.currentGroup;
+                                if (group != null) {
+                                  try {
+                                    await widget.provider.repository.sendGroupInvite(
+                                      student.id, 
+                                      group.id, 
+                                      group.name
+                                    );
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Đã gửi lời mời')),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Lỗi: $e')),
+                                      );
+                                    }
+                                  }
+                                }
+                              },
+                              child: const Text('Mời'),
+                            ),
+                          );
+                        },
+                      ),
+          ),
         ],
       ),
     );

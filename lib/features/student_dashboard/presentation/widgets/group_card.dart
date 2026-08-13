@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/group_entity.dart';
+import '../../domain/entities/member_entity.dart';
 
 class GroupCard extends StatelessWidget {
   final GroupEntity group;
@@ -89,7 +91,7 @@ class GroupCard extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: group.members.map((m) => _buildMemberChip(m.name)).toList(),
+            children: group.members.map((m) => _buildMemberChip(m)).toList(),
           ),
           const SizedBox(height: 16),
           
@@ -143,33 +145,44 @@ class GroupCard extends StatelessWidget {
     );
   }
 
-  Widget _buildMemberChip(String name) {
-    final shortName = name.split(' ').last;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F7FA),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CircleAvatar(
-            radius: 8,
-            backgroundColor: const Color(0xFF1E65D0).withValues(alpha: 0.2),
-            child: const Icon(Icons.school, size: 10, color: Color(0xFF1E65D0)),
+  Widget _buildMemberChip(MemberEntity member) {
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('users').doc(member.id).get(),
+      builder: (context, snapshot) {
+        String shortName = '...';
+        if (snapshot.hasData && snapshot.data!.exists) {
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          final fullName = data['name'] as String? ?? 'Không tên';
+          shortName = fullName.trim().split(' ').last;
+        }
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F7FA),
+            borderRadius: BorderRadius.circular(12),
           ),
-          const SizedBox(width: 4),
-          Text(
-            shortName,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade700,
-              fontWeight: FontWeight.w500,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 8,
+                backgroundColor: const Color(0xFF1E65D0).withValues(alpha: 0.2),
+                child: const Icon(Icons.school, size: 10, color: Color(0xFF1E65D0)),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                shortName,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade700,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
