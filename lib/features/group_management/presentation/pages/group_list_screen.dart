@@ -359,7 +359,7 @@ class GroupListScreen extends ConsumerWidget {
                   iconColor: Colors.grey.shade700,
                   textColor: Colors.grey.shade800,
                 ),
-                if (group.githubLink != null && group.githubLink!.isNotEmpty) ...[
+                if (group.githubUrl != null && group.githubUrl!.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   _buildChip(
                     icon: Icons.code,
@@ -369,7 +369,7 @@ class GroupListScreen extends ConsumerWidget {
                     textColor: const Color(0xFF1976D2),
                   ),
                 ],
-                if (group.docsLink != null && group.docsLink!.isNotEmpty) ...[
+                if (group.docsUrl != null && group.docsUrl!.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   _buildChip(
                     icon: Icons.description,

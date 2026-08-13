@@ -51,9 +51,9 @@ class GroupCard extends StatelessWidget {
               ),
               Row(
                 children: [
-                  if (group.githubLink != null)
+                  if (group.githubUrl != null)
                     _buildIconLink(Icons.code, Colors.grey.shade600),
-                  if (group.docsLink != null) ...[
+                  if (group.docsUrl != null) ...[
                     const SizedBox(width: 8),
                     _buildIconLink(Icons.description_outlined, Colors.blue),
                   ],
