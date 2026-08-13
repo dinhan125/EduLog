@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/group_entity.dart';
 import '../../domain/entities/member_entity.dart';
 
@@ -12,6 +13,8 @@ class GroupModel extends GroupEntity {
     required super.members,
     super.joinRequests = const [],
     super.isFull = false,
+    required super.leaderId,
+    super.createdAt,
   });
 
   factory GroupModel.fromJson(Map<String, dynamic> json, String id) {
@@ -35,6 +38,11 @@ class GroupModel extends GroupEntity {
       );
     }).toList();
 
+    DateTime? createdAt;
+    if (json['ngay_tao'] is Timestamp) {
+      createdAt = (json['ngay_tao'] as Timestamp).toDate();
+    }
+
     return GroupModel(
       id: id,
       classId: json['ma_lop'] as String? ?? '',
@@ -45,6 +53,8 @@ class GroupModel extends GroupEntity {
       members: parsedMembers,
       joinRequests: parsedRequests,
       isFull: parsedMembers.length >= (json['maxMembers'] as int? ?? 4),
+      leaderId: json['truong_nhom_id'] as String? ?? '',
+      createdAt: createdAt,
     );
   }
 
