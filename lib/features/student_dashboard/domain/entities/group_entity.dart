@@ -11,6 +11,9 @@ class GroupEntity {
   final List<MemberEntity> joinRequests;
   final bool isFull;
 
+  final String leaderId;
+  final DateTime? createdAt;
+
   GroupEntity({
     required this.id,
     required this.classId,
@@ -21,6 +24,8 @@ class GroupEntity {
     required this.members,
     this.joinRequests = const [],
     this.isFull = false,
+    required this.leaderId,
+    this.createdAt,
   });
 
   GroupEntity copyWith({
@@ -33,6 +38,8 @@ class GroupEntity {
     List<MemberEntity>? members,
     List<MemberEntity>? joinRequests,
     bool? isFull,
+    String? leaderId,
+    DateTime? createdAt,
   }) {
     return GroupEntity(
       id: id ?? this.id,
@@ -44,6 +51,8 @@ class GroupEntity {
       members: members ?? this.members,
       joinRequests: joinRequests ?? this.joinRequests,
       isFull: isFull ?? this.isFull,
+      leaderId: leaderId ?? this.leaderId,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }

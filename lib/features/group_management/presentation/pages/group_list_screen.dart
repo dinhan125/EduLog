@@ -3,6 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../class_management/data/models/class_model.dart';
 import '../../../class_management/presentation/widgets/invite_student_bottom_sheet.dart';
+import '../../../student_dashboard/domain/entities/group_entity.dart';
+import '../../data/repositories/group_repository.dart';
+
+final classGroupsProvider = FutureProvider.family<List<GroupEntity>, String>((ref, classId) async {
+  final repository = ref.read(groupRepositoryProvider);
+  return repository.getGroupsForClass(classId);
+});
 
 class GroupListScreen extends ConsumerWidget {
   final ClassModel classModel;
@@ -10,17 +17,25 @@ class GroupListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hasGroups = classModel.groupCount > 0;
+    final groupsAsync = ref.watch(classGroupsProvider(classModel.id));
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      appBar: _buildAppBar(context, hasGroups, classModel.name),
-      body: hasGroups ? _buildListState() : _buildEmptyState(context),
+      appBar: _buildAppBar(context, true, classModel.name), // assume true for loading state height
+      body: groupsAsync.when(
+        data: (groups) {
+          final hasGroups = groups.isNotEmpty;
+          return hasGroups ? _buildListState(groups) : _buildEmptyState(context);
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Lỗi: $err')),
+      ),
     );
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context, bool hasGroups, String className) {
     return PreferredSize(
-      preferredSize: Size.fromHeight(hasGroups ? 140 : 80),
+      preferredSize: Size.fromHeight(hasGroups ? 170 : 80),
       child: Container(
         color: const Color(0xFF1565C0),
         padding: EdgeInsets.only(
@@ -237,7 +252,7 @@ class GroupListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildListState() {
+  Widget _buildListState(List<GroupEntity> groups) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -256,9 +271,9 @@ class GroupListScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
-                '4 nhóm trong môn học',
-                style: TextStyle(
+              Text(
+                '${groups.length} nhóm trong môn học',
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -270,9 +285,9 @@ class GroupListScreen extends ConsumerWidget {
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            itemCount: 4,
+            itemCount: groups.length,
             itemBuilder: (context, index) {
-              return _buildGroupCard(index);
+              return _buildGroupCard(groups[index]);
             },
           ),
         ),
@@ -280,8 +295,8 @@ class GroupListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildGroupCard(int index) {
-    final bool isCompleted = index % 2 == 0;
+  Widget _buildGroupCard(GroupEntity group) {
+    final bool isCompleted = false; // Add real logic here later
     
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -307,7 +322,7 @@ class GroupListScreen extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Nhóm ${index + 1} • LTML K65',
+                    group.name,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -331,27 +346,31 @@ class GroupListScreen extends ConsumerWidget {
               children: [
                 _buildChip(
                   icon: Icons.person,
-                  text: '3 thành viên',
+                  text: '${group.members.length} thành viên',
                   bgColor: Colors.grey.shade100,
                   iconColor: Colors.grey.shade700,
                   textColor: Colors.grey.shade800,
                 ),
-                const SizedBox(width: 8),
-                _buildChip(
-                  icon: Icons.code, // Placeholder for github
-                  text: 'GitHub',
-                  bgColor: const Color(0xFFE3F2FD),
-                  iconColor: const Color(0xFF1976D2),
-                  textColor: const Color(0xFF1976D2),
-                ),
-                const SizedBox(width: 8),
-                _buildChip(
-                  icon: Icons.description,
-                  text: 'Docs',
-                  bgColor: const Color(0xFFE8F5E9),
-                  iconColor: const Color(0xFF388E3C),
-                  textColor: const Color(0xFF388E3C),
-                ),
+                if (group.githubUrl != null && group.githubUrl!.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  _buildChip(
+                    icon: Icons.code,
+                    text: 'GitHub',
+                    bgColor: const Color(0xFFE3F2FD),
+                    iconColor: const Color(0xFF1976D2),
+                    textColor: const Color(0xFF1976D2),
+                  ),
+                ],
+                if (group.docsUrl != null && group.docsUrl!.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  _buildChip(
+                    icon: Icons.description,
+                    text: 'Docs',
+                    bgColor: const Color(0xFFE8F5E9),
+                    iconColor: const Color(0xFF388E3C),
+                    textColor: const Color(0xFF388E3C),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 16),

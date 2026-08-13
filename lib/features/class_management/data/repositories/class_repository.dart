@@ -39,11 +39,21 @@ class ClassRepository {
           .where('giang_vien_id', isEqualTo: teacherUid)
           .get();
 
-      return querySnapshot.docs.map((doc) {
+      final List<Map<String, dynamic>> classesData = [];
+      for (final doc in querySnapshot.docs) {
         final data = doc.data();
         data['id'] = doc.id; // Inject the Document ID
-        return data;
-      }).toList();
+        
+        final countQuery = await _firestore
+            .collection('groups')
+            .where('ma_lop', isEqualTo: doc.id)
+            .count()
+            .get();
+        data['groupCount'] = countQuery.count;
+        
+        classesData.add(data);
+      }
+      return classesData;
     } catch (e) {
       debugPrint('Error getting classes for teacher ($teacherUid): $e');
       rethrow;
