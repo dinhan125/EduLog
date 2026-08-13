@@ -48,8 +48,8 @@ class GroupModel extends GroupEntity {
       classId: json['ma_lop'] as String? ?? '',
       name: json['ten_nhom'] as String? ?? '',
       maxMembers: json['maxMembers'] as int? ?? 4,
-      githubUrl: json['githubLink'] as String?,
-      docsUrl: json['docsLink'] as String?,
+      githubUrl: json['link_github'] as String?,
+      docsUrl: json['link_docs'] as String?,
       members: parsedMembers,
       joinRequests: parsedRequests,
       isFull: parsedMembers.length >= (json['maxMembers'] as int? ?? 4),
@@ -65,8 +65,8 @@ class GroupModel extends GroupEntity {
       'truong_nhom_id': members.isNotEmpty ? members.first.id : '',
       'thanh_vien': members.map((e) => e.id).toList(),
       'maxMembers': maxMembers,
-      'githubLink': githubUrl,
-      'docsLink': docsUrl,
+      'link_github': githubUrl,
+      'link_docs': docsUrl,
       'pendingRequests': joinRequests.map((e) => e.id).toList(),
     };
   }

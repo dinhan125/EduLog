@@ -66,4 +66,11 @@ class StudentDashboardProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  void clearData() {
+    _classes = [];
+    _userName = 'Sinh viên';
+    _errorMessage = null;
+    notifyListeners();
+  }
 }
