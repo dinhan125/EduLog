@@ -296,7 +296,7 @@ class GroupListScreen extends ConsumerWidget {
   }
 
   Widget _buildGroupCard(GroupEntity group) {
-    final bool isCompleted = false; // Add real logic here later
+    final bool isCompleted = group.isFull; // Temporary logic to prevent dead code
     
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
