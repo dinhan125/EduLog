@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/student_dashboard_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../data/models/notification_model.dart';
 
 
 class DashboardHeader extends StatefulWidget {
@@ -54,6 +56,65 @@ class _DashboardHeaderState extends State<DashboardHeader> {
     }
   }
 
+  void _showNotificationsSheet(BuildContext context, List<NotificationModel> notifications) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        if (notifications.isEmpty) {
+          return const SizedBox(
+            height: 200,
+            child: Center(child: Text('Không có thông báo nào')),
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: notifications.length,
+          itemBuilder: (ctx, index) {
+            final notif = notifications[index];
+            return Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                title: Text(notif.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 4),
+                    Text(notif.body),
+                    if (notif.type == 'group_invite') ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          ElevatedButton(
+                            onPressed: () async {
+                              Navigator.pop(ctx);
+                              await context.read<StudentDashboardProvider>().repository.respondToGroupInvite(notif.id, notif.groupId, true);
+                              if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã tham gia nhóm')));
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                            child: const Text('Đồng ý'),
+                          ),
+                          const SizedBox(width: 8),
+                          OutlinedButton(
+                            onPressed: () async {
+                              Navigator.pop(ctx);
+                              await context.read<StudentDashboardProvider>().repository.respondToGroupInvite(notif.id, notif.groupId, false);
+                            },
+                            child: const Text('Từ chối', style: TextStyle(color: Colors.grey)),
+                          ),
+                        ],
+                      )
+                    ]
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -100,42 +161,72 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                 ),
               ),
               // Notification and Exit icons
-              Stack(
-                children: [
-                  const Icon(
-                    Icons.notifications_outlined,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 14,
-                        minHeight: 14,
-                      ),
-                      child: const Text(
-                        '2',
-                        style: TextStyle(
+              StreamBuilder<List<NotificationModel>>(
+                stream: FirebaseAuth.instance.currentUser == null 
+                    ? const Stream<List<NotificationModel>>.empty() 
+                    : context.read<StudentDashboardProvider>().repository.getNotificationsStream(FirebaseAuth.instance.currentUser!.uid),
+                builder: (context, snapshot) {
+                  debugPrint('Số thông báo nhận được: ${snapshot.data?.length}');
+                  final notifications = snapshot.data ?? [];
+                  final unreadCount = notifications.where((n) => !n.isRead).length;
+
+                  return InkWell(
+                    onTap: () => _showNotificationsSheet(context, notifications),
+                    child: Stack(
+                      children: [
+                        const Icon(
+                          Icons.notifications_outlined,
                           color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
+                          size: 28,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
+                        if (unreadCount > 0)
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 14,
+                                minHeight: 14,
+                              ),
+                              child: Text(
+                                unreadCount > 9 ? '9+' : unreadCount.toString(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                  ),
-                ],
+                  );
+                }
               ),
 
               const SizedBox(width: 15),
-              const Icon(Icons.logout, color: Colors.white, size: 28),
+              InkWell(
+                onTap: () async {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (ctx) => const Center(child: CircularProgressIndicator()),
+                  );
+                  context.read<StudentDashboardProvider>().clearData();
+                  await FirebaseAuth.instance.signOut();
+                  if (context.mounted) {
+                    Navigator.pop(context); // pop loading
+                    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                  }
+                },
+                child: const Icon(Icons.logout, color: Colors.white, size: 28),
+              ),
             ],
           ),
           const SizedBox(height: 25),

@@ -6,6 +6,7 @@ import '../../domain/entities/group_entity.dart';
 import '../../domain/entities/member_entity.dart';
 import '../models/class_model.dart';
 import '../models/group_model.dart';
+import '../models/notification_model.dart';
 
 class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
   final FirebaseFirestore _firestore;
@@ -86,8 +87,8 @@ class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
   }
 
   @override
-  Future<void> createGroup(String classId, String groupName) async {
-    await _firestore.collection('groups').add({
+  Future<GroupEntity> createGroup(String classId, String groupName) async {
+    final docRef = await _firestore.collection('groups').add({
       'ma_lop': classId,
       'ten_nhom': groupName,
       'truong_nhom_id': _currentUserId,
@@ -96,6 +97,9 @@ class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
       'pendingRequests': [],
       'maxMembers': 4,
     });
+    
+    final docSnap = await docRef.get();
+    return GroupModel.fromJson(docSnap.data()!, docSnap.id);
   }
 
   @override
@@ -161,5 +165,71 @@ class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
         });
       }
     }
+  }
+
+  @override
+  Future<List<MemberEntity>> getStudentsWithoutGroup(String classId) async {
+    final classDoc = await _firestore.collection('classes').doc(classId).get();
+    if (!classDoc.exists) return [];
+    
+    final classData = classDoc.data()!;
+    final List<dynamic> danhSachSinhVien = classData['danh_sach_sinh_vien'] ?? [];
+    
+    final groupsQuery = await _firestore
+        .collection('groups')
+        .where('ma_lop', isEqualTo: classId)
+        .get();
+        
+    final Set<String> groupedUids = {};
+    for (var doc in groupsQuery.docs) {
+      final data = doc.data();
+      final List<dynamic> thanhVien = data['thanh_vien'] ?? [];
+      groupedUids.addAll(thanhVien.map((e) => e.toString()));
+    }
+    
+    final List<String> ungroupedUids = danhSachSinhVien
+        .map((e) => e.toString())
+        .where((uid) => !groupedUids.contains(uid))
+        .toList();
+        
+    return await getUsersByUids(ungroupedUids);
+  }
+
+  @override
+  Future<void> sendGroupInvite(String targetUid, String groupId, String groupName) async {
+    await _firestore.collection('notifications').add({
+      'receiverId': targetUid,
+      'title': 'Lời mời tham gia nhóm',
+      'body': 'Bạn nhận được lời mời tham gia nhóm "$groupName".',
+      'type': 'group_invite',
+      'groupId': groupId,
+      'isRead': false,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  @override
+  Stream<List<NotificationModel>> getNotificationsStream(String uid) {
+    return _firestore
+        .collection('notifications')
+        .where('receiverId', isEqualTo: uid)
+        .snapshots()
+        .map((snapshot) {
+          final list = snapshot.docs
+              .map((doc) => NotificationModel.fromJson(doc.data(), doc.id))
+              .toList();
+          list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return list;
+        });
+  }
+
+  @override
+  Future<void> respondToGroupInvite(String notificationId, String groupId, bool isAccepted) async {
+    if (isAccepted) {
+      await _firestore.collection('groups').doc(groupId).update({
+        'thanh_vien': FieldValue.arrayUnion([_currentUserId]),
+      });
+    }
+    await _firestore.collection('notifications').doc(notificationId).delete();
   }
 }

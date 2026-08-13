@@ -23,6 +23,11 @@ class GroupManagementProvider extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  void selectGroup(GroupEntity group) {
+    _currentGroup = group;
+    notifyListeners();
+  }
+
   List<GroupEntity> _groups = [];
   GroupEntity? _currentGroup;
   final Map<String, bool> _joinRequests = {};
@@ -105,14 +110,16 @@ class GroupManagementProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> createGroup(String classId, String name, String github, String docs) async {
+  Future<GroupEntity> createGroup(String classId, String name, String github, String docs) async {
     _isLoading = true;
     notifyListeners();
     try {
-      await repository.createGroup(classId, name);
-      // Giả lập refresh groups hoặc gọi initForClass(currentClass) ở UI
+      final newGroup = await repository.createGroup(classId, name);
+      // Wait for fetchGroups to update the list, although we just return the new group
+      return newGroup;
     } catch (e) {
       _errorMessage = e.toString();
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
