@@ -114,7 +114,7 @@ class GroupManagementProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final newGroup = await repository.createGroup(classId, name);
+      final newGroup = await repository.createGroup(classId, name, github.isEmpty ? null : github, docs.isEmpty ? null : docs);
       // Wait for fetchGroups to update the list, although we just return the new group
       return newGroup;
     } catch (e) {

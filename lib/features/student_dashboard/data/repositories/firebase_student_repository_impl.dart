@@ -87,7 +87,7 @@ class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
   }
 
   @override
-  Future<GroupEntity> createGroup(String classId, String groupName) async {
+  Future<GroupModel> createGroup(String classId, String groupName, String? linkGithub, String? linkDocs) async {
     final docRef = await _firestore.collection('groups').add({
       'ma_lop': classId,
       'ten_nhom': groupName,
@@ -96,10 +96,20 @@ class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
       'ngay_tao': FieldValue.serverTimestamp(),
       'pendingRequests': [],
       'maxMembers': 4,
+      'link_github': linkGithub,
+      'link_docs': linkDocs,
     });
     
     final docSnap = await docRef.get();
     return GroupModel.fromJson(docSnap.data()!, docSnap.id);
+  }
+
+  @override
+  Future<void> updateGroupLinks(String groupId, String linkGithub, String linkDocs) async {
+    await _firestore.collection('groups').doc(groupId).update({
+      'link_github': linkGithub,
+      'link_docs': linkDocs,
+    });
   }
 
   @override
