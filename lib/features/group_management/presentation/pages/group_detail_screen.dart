@@ -1,3 +1,4 @@
+import '../../data/repositories/github_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../student_dashboard/domain/entities/group_entity.dart';
@@ -22,7 +23,7 @@ class GroupDetailScreen extends ConsumerWidget {
                 children: [
                   _buildProjectInfoCard(group),
                   const SizedBox(height: 16),
-                  _buildContributionOverviewCard(),
+                  _buildContributionOverviewCard(ref),
                   const SizedBox(height: 16),
                   _buildMembersListCard(context, ref),
                   const SizedBox(height: 32),
@@ -262,7 +263,10 @@ class GroupDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildContributionOverviewCard() {
+  Widget _buildContributionOverviewCard(WidgetRef ref) {
+    final githubLink = group.githubUrl ?? '';
+    final asyncData = ref.watch(githubContributionsProvider(githubLink));
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -315,79 +319,83 @@ class GroupDetailScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          Row(
-            children: [
-              // Mock Donut Chart
-              SizedBox(
-                width: 100,
-                height: 100,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: 100,
-                      height: 100,
-                      child: CircularProgressIndicator(
-                        value: 1.0,
-                        strokeWidth: 16,
-                        color: const Color(0xFF673AB7), // Cường (38%)
-                      ),
-                    ),
-                    SizedBox(
-                      width: 100,
-                      height: 100,
-                      child: CircularProgressIndicator(
-                        value: 0.62, // 34% + 28%
-                        strokeWidth: 16,
-                        color: const Color(0xFF1565C0), // An (34%)
-                      ),
-                    ),
-                    SizedBox(
-                      width: 100,
-                      height: 100,
-                      child: CircularProgressIndicator(
-                        value: 0.28,
-                        strokeWidth: 16,
-                        color: const Color(0xFF009688), // Bình (28%)
-                      ),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Text(
-                          'Đóng góp',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        Text(
-                          '100%',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
+          asyncData.when(
+            data: (data) {
+              if (data.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: Text('Chưa có dữ liệu đóng góp')),
+                );
+              }
+
+              final colors = [
+                const Color(0xFF1565C0),
+                const Color(0xFF009688),
+                const Color(0xFF673AB7),
+                const Color(0xFFE91E63),
+                const Color(0xFFFF9800),
+              ];
+
+              double currentTotal = 0;
+              final chartWidgets = <Widget>[];
+              final legendWidgets = <Widget>[];
+
+              for (var i = 0; i < data.length; i++) {
+                final item = data[i];
+                final percentage = ((item['percentage'] as num?)?.toDouble() ?? 0.0) / 100.0;
+                final username = item['username']?.toString() ?? 'Unknown';
+                final color = colors[i % colors.length];
+
+                // Add to legends
+                legendWidgets.add(
+                  _buildLegendItem(username, '${(percentage * 100).toInt()}%', color),
+                );
+                if (i < data.length - 1) legendWidgets.add(const SizedBox(height: 12));
+
+                // Add to chart
+                currentTotal += percentage;
+                chartWidgets.insert(0, SizedBox(
+                  width: 100,
+                  height: 100,
+                  child: CircularProgressIndicator(
+                    value: currentTotal,
+                    strokeWidth: 16,
+                    color: color,
+                  ),
+                ));
+              }
+
+              chartWidgets.add(
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Text('Đóng góp', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                    Text('100%', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
                   ],
-                ),
-              ),
-              const SizedBox(width: 32),
-              // Legend
-              Expanded(
-                child: Column(
-                  children: [
-                    _buildLegendItem('Nguyễn Văn An', '34%', const Color(0xFF1565C0)),
-                    const SizedBox(height: 12),
-                    _buildLegendItem('Trần Thị Bình', '28%', const Color(0xFF009688)),
-                    const SizedBox(height: 12),
-                    _buildLegendItem('Lê Minh Cường', '38%', const Color(0xFF673AB7)),
-                  ],
-                ),
-              ),
-            ],
+                )
+              );
+
+              return Row(
+                children: [
+                  SizedBox(
+                    width: 100,
+                    height: 100,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: chartWidgets,
+                    ),
+                  ),
+                  const SizedBox(width: 32),
+                  Expanded(
+                    child: Column(
+                      children: legendWidgets,
+                    ),
+                  ),
+                ],
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, st) => Text('Lỗi: $e', style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
