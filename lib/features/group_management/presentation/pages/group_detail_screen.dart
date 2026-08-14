@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../student_dashboard/domain/entities/group_entity.dart';
 import '../../data/repositories/group_repository.dart';
+import '../../../oral_exam/presentation/pages/oral_exam_screen.dart';
 
 class GroupDetailScreen extends ConsumerWidget {
   final GroupEntity group;
@@ -471,20 +472,6 @@ class GroupDetailScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-              ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.camera_alt, size: 16),
-                label: const Text('Chụp ảnh'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1976D2),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -540,7 +527,7 @@ class GroupDetailScreen extends ConsumerWidget {
                       ? user.name.trim().split(RegExp(r'\s+')).map((e) => e.isNotEmpty ? e[0].toUpperCase() : '').take(2).join() 
                       : '?';
 
-                  return _buildMemberItem(user.name, initials, config);
+                  return _buildMemberItem(context, user.name, initials, config);
                 },
               );
             },
@@ -552,7 +539,7 @@ class GroupDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMemberItem(String name, String initials, Map<String, dynamic> config) {
+  Widget _buildMemberItem(BuildContext context, String name, String initials, Map<String, dynamic> config) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -577,71 +564,70 @@ class GroupDetailScreen extends ConsumerWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      Text(
-                        '${((config['percentage'] as double) * 100).toInt()}%',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: config['color'] as Color,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    config['task'] as String,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  LinearProgressIndicator(
-                    value: config['percentage'] as double,
-                    backgroundColor: Colors.grey.shade200,
-                    valueColor: AlwaysStoppedAnimation<Color>(config['color'] as Color),
-                    minHeight: 6,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ],
+              child: Text(
+                name,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.camera_alt_outlined, size: 18),
-            label: const Text(
-              'Chụp ảnh sinh viên',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1976D2),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () {},
+                icon: const Icon(Icons.camera_alt_outlined, size: 18),
+                label: const Text(
+                  'Chụp ảnh',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1976D2),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ),
             ),
-          ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OralExamScreen(
+                        studentName: name,
+                        groupName: group.name,
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.play_arrow, size: 18),
+                label: const Text(
+                  'Vấn đáp',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE3F2FD),
+                  foregroundColor: const Color(0xFF1976D2),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
