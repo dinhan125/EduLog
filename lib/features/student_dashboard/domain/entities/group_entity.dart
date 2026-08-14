@@ -10,6 +10,9 @@ class GroupEntity {
   final List<MemberEntity> members;
   final List<MemberEntity> joinRequests;
   final bool isFull;
+  final List<dynamic>? githubStats;
+  final List<dynamic>? docsStats;
+  final DateTime? lastSynced;
 
   final String leaderId;
   final DateTime? createdAt;
@@ -24,6 +27,9 @@ class GroupEntity {
     required this.members,
     this.joinRequests = const [],
     this.isFull = false,
+    this.githubStats,
+    this.docsStats,
+    this.lastSynced,
     required this.leaderId,
     this.createdAt,
   });
@@ -38,6 +44,9 @@ class GroupEntity {
     List<MemberEntity>? members,
     List<MemberEntity>? joinRequests,
     bool? isFull,
+    List<dynamic>? githubStats,
+    List<dynamic>? docsStats,
+    DateTime? lastSynced,
     String? leaderId,
     DateTime? createdAt,
   }) {
@@ -51,8 +60,40 @@ class GroupEntity {
       members: members ?? this.members,
       joinRequests: joinRequests ?? this.joinRequests,
       isFull: isFull ?? this.isFull,
+      githubStats: githubStats ?? this.githubStats,
+      docsStats: docsStats ?? this.docsStats,
+      lastSynced: lastSynced ?? this.lastSynced,
       leaderId: leaderId ?? this.leaderId,
       createdAt: createdAt ?? this.createdAt,
     );
+  }
+  
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+  
+    return other is GroupEntity &&
+      other.id == id &&
+      other.classId == classId &&
+      other.name == name &&
+      other.maxMembers == maxMembers &&
+      other.githubUrl == githubUrl &&
+      other.docsUrl == docsUrl &&
+      other.isFull == isFull &&
+      other.leaderId == leaderId &&
+      other.lastSynced == lastSynced;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^
+      classId.hashCode ^
+      name.hashCode ^
+      maxMembers.hashCode ^
+      githubUrl.hashCode ^
+      docsUrl.hashCode ^
+      isFull.hashCode ^
+      leaderId.hashCode ^
+      lastSynced.hashCode;
   }
 }
