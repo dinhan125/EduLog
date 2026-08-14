@@ -2,12 +2,14 @@ import '../entities/class_entity.dart';
 import '../entities/group_entity.dart';
 import '../entities/member_entity.dart';
 import '../../data/models/notification_model.dart';
+import '../../data/models/group_model.dart';
 
 abstract class StudentDashboardRepository {
   Future<List<ClassEntity>> getJoinedClasses();
   Future<void> joinClass(String classCode);
   Future<List<GroupEntity>> getGroupsByClass(String classId);
-  Future<GroupEntity> createGroup(String classId, String groupName);
+  Future<GroupModel> createGroup(String classId, String groupName, String? linkGithub, String? linkDocs);
+  Future<void> updateGroupLinks(String groupId, String linkGithub, String linkDocs);
   Future<void> requestJoinGroup(String groupId);
   Future<String> getUserName();
   Future<List<MemberEntity>> getUsersByUids(List<String> uids);

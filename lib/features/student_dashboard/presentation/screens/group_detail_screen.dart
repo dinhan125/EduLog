@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/group_management_provider.dart';
 import '../widgets/member_item.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/group_entity.dart';
 import '../../domain/entities/member_entity.dart';
@@ -37,8 +37,8 @@ class GroupDetailScreen extends StatelessWidget {
   }
 
   void _showEditLinksDialog(BuildContext context, GroupEntity group) {
-    final githubController = TextEditingController(text: group.githubUrl);
-    final docsController = TextEditingController(text: group.docsUrl);
+    final githubController = TextEditingController(text: group.link_github);
+    final docsController = TextEditingController(text: group.link_docs);
 
     showDialog(
       context: context,
@@ -67,10 +67,7 @@ class GroupDetailScreen extends StatelessWidget {
             onPressed: () async {
               Navigator.pop(ctx);
               try {
-                await FirebaseFirestore.instance.collection('groups').doc(group.id).update({
-                  'link_github': githubController.text.trim(),
-                  'link_docs': docsController.text.trim(),
-                });
+                await context.read<GroupManagementProvider>().repository.updateGroupLinks(group.id, githubController.text.trim(), docsController.text.trim());
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã cập nhật link')));
                   context.read<GroupManagementProvider>().fetchGroups(classId); // Refresh
@@ -155,12 +152,9 @@ class GroupDetailScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Row(
                   children: [
-                    if (group.githubUrl != null)
-                      Expanded(child: _buildHeaderAction(context, Icons.code, 'GitHub', group.githubUrl)),
-                    if (group.githubUrl != null && group.docsUrl != null)
-                      const SizedBox(width: 12),
-                    if (group.docsUrl != null)
-                      Expanded(child: _buildHeaderAction(context, Icons.description_outlined, 'Google Docs', group.docsUrl)),
+                    Expanded(child: _buildHeaderAction(context, Icons.code, 'GitHub', group.link_github)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildHeaderAction(context, Icons.description_outlined, 'Google Docs', group.link_docs)),
                   ],
                 ),
               ),
@@ -300,7 +294,7 @@ class GroupDetailScreen extends StatelessWidget {
     return InkWell(
       onTap: () async {
         if (url == null || url.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Chưa có link')));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Chưa có link, hãy bấm nút sửa')));
           return;
         }
         final uri = Uri.parse(url);
