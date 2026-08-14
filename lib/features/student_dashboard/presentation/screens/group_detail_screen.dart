@@ -37,8 +37,8 @@ class GroupDetailScreen extends StatelessWidget {
   }
 
   void _showEditLinksDialog(BuildContext context, GroupEntity group) {
-    final githubController = TextEditingController(text: group.link_github);
-    final docsController = TextEditingController(text: group.link_docs);
+    final githubController = TextEditingController(text: group.githubUrl);
+    final docsController = TextEditingController(text: group.docsUrl);
 
     showDialog(
       context: context,
@@ -152,9 +152,9 @@ class GroupDetailScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Row(
                   children: [
-                    Expanded(child: _buildHeaderAction(context, Icons.code, 'GitHub', group.link_github)),
+                    Expanded(child: _buildHeaderAction(context, Icons.code, 'GitHub', group.githubUrl)),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildHeaderAction(context, Icons.description_outlined, 'Google Docs', group.link_docs)),
+                    Expanded(child: _buildHeaderAction(context, Icons.description_outlined, 'Google Docs', group.docsUrl)),
                   ],
                 ),
               ),
