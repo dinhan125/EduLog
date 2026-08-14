@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/student_dashboard_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/models/notification_model.dart';
+import '../../../auth/presentation/login_screen.dart';
 
 
 class DashboardHeader extends StatefulWidget {
@@ -220,10 +221,11 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                   );
                   context.read<StudentDashboardProvider>().clearData();
                   await FirebaseAuth.instance.signOut();
-                  if (context.mounted) {
-                    Navigator.pop(context); // pop loading
-                    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                  }
+                  if (!context.mounted) return;
+                  Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    (route) => false
+                  );
                 },
                 child: const Icon(Icons.logout, color: Colors.white, size: 28),
               ),
