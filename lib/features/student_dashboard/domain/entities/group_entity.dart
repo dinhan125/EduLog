@@ -5,8 +5,8 @@ class GroupEntity {
   final String classId;
   final String name;
   final int maxMembers;
-  final String? link_github;
-  final String? link_docs;
+  final String? githubUrl;
+  final String? docsUrl;
   final List<MemberEntity> members;
   final List<MemberEntity> joinRequests;
   final bool isFull;
@@ -16,8 +16,8 @@ class GroupEntity {
     required this.classId,
     required this.name,
     this.maxMembers = 4,
-    this.link_github,
-    this.link_docs,
+    this.githubUrl,
+    this.docsUrl,
     required this.members,
     this.joinRequests = const [],
     this.isFull = false,
@@ -28,8 +28,8 @@ class GroupEntity {
     String? classId,
     String? name,
     int? maxMembers,
-    String? link_github,
-    String? link_docs,
+    String? githubUrl,
+    String? docsUrl,
     List<MemberEntity>? members,
     List<MemberEntity>? joinRequests,
     bool? isFull,
@@ -39,8 +39,8 @@ class GroupEntity {
       classId: classId ?? this.classId,
       name: name ?? this.name,
       maxMembers: maxMembers ?? this.maxMembers,
-      link_github: link_github ?? this.link_github,
-      link_docs: link_docs ?? this.link_docs,
+      githubUrl: githubUrl ?? this.githubUrl,
+      docsUrl: docsUrl ?? this.docsUrl,
       members: members ?? this.members,
       joinRequests: joinRequests ?? this.joinRequests,
       isFull: isFull ?? this.isFull,
