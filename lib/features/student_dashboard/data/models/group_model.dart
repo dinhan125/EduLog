@@ -13,6 +13,9 @@ class GroupModel extends GroupEntity {
     required super.members,
     super.joinRequests = const [],
     super.isFull = false,
+    super.githubStats,
+    super.docsStats,
+    super.lastSynced,
     required super.leaderId,
     super.createdAt,
   });
@@ -53,6 +56,9 @@ class GroupModel extends GroupEntity {
       members: parsedMembers,
       joinRequests: parsedRequests,
       isFull: parsedMembers.length >= (json['maxMembers'] as int? ?? 4),
+      githubStats: json['githubStats'] as List<dynamic>?,
+      docsStats: json['docsStats'] as List<dynamic>?,
+      lastSynced: json['lastSynced'] != null ? (json['lastSynced'] as Timestamp).toDate() : null,
       leaderId: json['truong_nhom_id'] as String? ?? '',
       createdAt: createdAt,
     );
@@ -68,6 +74,9 @@ class GroupModel extends GroupEntity {
       'link_github': githubUrl,
       'link_docs': docsUrl,
       'pendingRequests': joinRequests.map((e) => e.id).toList(),
+      'githubStats': githubStats,
+      'docsStats': docsStats,
+      'lastSynced': lastSynced != null ? Timestamp.fromDate(lastSynced!) : null,
     };
   }
 }
