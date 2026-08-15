@@ -1,4 +1,7 @@
-import 'package:flutter/material.dart';
+import os
+
+screen_path = 'lib/features/group_management/presentation/pages/contribution_analysis_screen.dart'
+new_content = '''import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../student_dashboard/domain/entities/group_entity.dart';
 
@@ -273,3 +276,8 @@ class ContributionAnalysisScreen extends ConsumerWidget {
     );
   }
 }
+'''
+
+with open(screen_path, 'w') as f:
+    f.write(new_content)
+print("Updated contribution_analysis_screen.dart")
