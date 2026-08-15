@@ -1,4 +1,7 @@
-import 'package:flutter/material.dart';
+import os
+
+screen_path = 'lib/features/group_management/presentation/pages/contribution_analysis_screen.dart'
+new_content = '''import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../student_dashboard/domain/entities/group_entity.dart';
 
@@ -173,8 +176,8 @@ class ContributionAnalysisScreen extends ConsumerWidget {
     final stats = group.docsStats;
 
     Widget content;
-    // Condition 1: If group.link_docs is null or empty "", return centered text: "Chưa gắn link Google Docs."
     if (docsUrl == null || docsUrl.trim().isEmpty) {
+      // State 1: Chưa gắn link Google Docs
       content = const Center(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -185,9 +188,8 @@ class ContributionAnalysisScreen extends ConsumerWidget {
           ),
         ),
       );
-    } 
-    // Condition 2: If group.link_docs is NOT empty, BUT group.docsStats is null or empty, return centered text: "Chưa có dữ liệu từ Docs. Vui lòng bấm Reload ở danh sách nhóm để pull về."
-    else if (stats == null || stats.isEmpty) {
+    } else if (stats == null || stats.isEmpty) {
+      // State 2: Đã có link nhưng chưa có dữ liệu/chưa đồng bộ
       content = const Center(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -198,9 +200,8 @@ class ContributionAnalysisScreen extends ConsumerWidget {
           ),
         ),
       );
-    } 
-    // Condition 3: Only if group.docsStats is not null and not empty, map over group.docsStats! to generate progress bars
-    else {
+    } else {
+      // State 3: Có dữ liệu thật
       content = Column(
         children: stats.map((s) => _buildProgressBar(s)).toList(),
       );
@@ -273,3 +274,8 @@ class ContributionAnalysisScreen extends ConsumerWidget {
     );
   }
 }
+'''
+
+with open(screen_path, 'w') as f:
+    f.write(new_content)
+print("Updated contribution_analysis_screen.dart with 3 Docs states.")

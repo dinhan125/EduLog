@@ -1,3 +1,4 @@
+import 'docs_repository.dart';
 import 'github_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -56,27 +57,33 @@ class GroupRepository {
   Future<void> syncAllGroups(String classId, dynamic ref) async {
     final groups = await getGroupsForClass(classId);
     final githubRepo = ref.read(githubRepositoryProvider);
+    final docsRepo = ref.read(docsRepositoryProvider);
 
     for (var group in groups) {
-      if (group.githubUrl != null && group.githubUrl!.isNotEmpty) {
-        final newGithubStats = await githubRepo.fetchGithubContributions(group.githubUrl!);
-        
-        // Mock Docs Stats
-        final newDocsStats = [
-          {'username': 'An (Mock)', 'percentage': 34.0},
-          {'username': 'Bình (Mock)', 'percentage': 28.0},
-          {'username': 'Cường (Mock)', 'percentage': 38.0}
-        ];
+      List<dynamic> githubStats = group.githubStats ?? [];
+      List<dynamic> docsStats = group.docsStats ?? [];
 
-        try {
-          await _firestore.collection('groups').doc(group.id).update({
-            'githubStats': newGithubStats,
-            'docsStats': newDocsStats,
-            'lastSynced': FieldValue.serverTimestamp(),
-          });
-        } catch (e) {
-          debugPrint('Failed to sync group ${group.id}: $e');
-        }
+      if (group.githubUrl != null && group.githubUrl!.isNotEmpty) {
+        final ghStats = await githubRepo.fetchGithubContributions(group.githubUrl!);
+        githubStats = ghStats;
+      }
+
+      if (group.docsUrl != null && group.docsUrl!.isNotEmpty) {
+        final docStats = await docsRepo.fetchDocsContributions(group.docsUrl!);
+        print('Fetched Docs Stats: $docStats');
+        docsStats = docStats ?? [];
+      }
+
+      try {
+        final Map<String, dynamic> updateData = {
+          'githubStats': githubStats,
+          'docsStats': docsStats,
+          'lastSynced': FieldValue.serverTimestamp(),
+        };
+        print('Updating Firestore document for group ${group.id} with payload: $updateData');
+        await _firestore.collection('groups').doc(group.id).update(updateData);
+      } catch (e) {
+        debugPrint('Failed to sync group ${group.id}: $e');
       }
     }
   }
