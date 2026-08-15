@@ -22,7 +22,7 @@ class GroupListScreen extends ConsumerWidget {
     
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      appBar: _buildAppBar(context, true, classModel.name), // assume true for loading state height
+      appBar: _buildAppBar(context, true, classModel.name, ref), // assume true for loading state height
       body: groupsAsync.when(
         data: (groups) {
           final hasGroups = groups.isNotEmpty;
@@ -34,7 +34,7 @@ class GroupListScreen extends ConsumerWidget {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, bool hasGroups, String className) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, bool hasGroups, String className, WidgetRef ref) {
     return PreferredSize(
       preferredSize: Size.fromHeight(hasGroups ? 170 : 80),
       child: Container(
@@ -84,7 +84,35 @@ class GroupListScreen extends ConsumerWidget {
                 if (hasGroups) ...[
                   IconButton(
                     icon: const Icon(Icons.refresh, color: Colors.white),
-                    onPressed: () {},
+                    onPressed: () async {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Đang đồng bộ dữ liệu...'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      try {
+                        await ref.read(groupRepositoryProvider).syncAllGroups(classModel.id, ref);
+                        ref.invalidate(classGroupsProvider(classModel.id));
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Đồng bộ thành công!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Lỗi đồng bộ: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
                   ),
                   const SizedBox(width: 4),
                   ElevatedButton.icon(

@@ -1,7 +1,7 @@
+import 'contribution_analysis_screen.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../../../student_dashboard/data/repositories/firebase_student_repository_impl.dart';
-import '../../data/repositories/github_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../student_dashboard/domain/entities/group_entity.dart';
@@ -27,7 +27,7 @@ class GroupDetailScreen extends ConsumerWidget {
                 children: [
                   _buildProjectInfoCard(group),
                   const SizedBox(height: 16),
-                  _buildContributionOverviewCard(ref),
+                  _buildContributionOverviewCard(context, ref),
                   const SizedBox(height: 16),
                   _buildMembersListCard(context, ref),
                   const SizedBox(height: 32),
@@ -267,10 +267,7 @@ class GroupDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildContributionOverviewCard(WidgetRef ref) {
-    final githubLink = group.githubUrl ?? '';
-    final asyncData = ref.watch(githubContributionsProvider(githubLink));
-
+  Widget _buildContributionOverviewCard(BuildContext context, WidgetRef ref) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -295,7 +292,12 @@ class GroupDetailScreen extends ConsumerWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ContributionAnalysisScreen(group: group)),
+                  );
+                },
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   backgroundColor: const Color(0xFFE8F0FE),
@@ -323,12 +325,33 @@ class GroupDetailScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          asyncData.when(
-            data: (data) {
-              if (data.isEmpty) {
+          Builder(
+            builder: (context) {
+              final githubUrl = group.githubUrl;
+              if (githubUrl == null || githubUrl.isEmpty) {
                 return const Padding(
                   padding: EdgeInsets.all(16.0),
-                  child: Center(child: Text('Chưa có dữ liệu đóng góp')),
+                  child: Center(
+                    child: Text(
+                      'Nhóm chưa gắn link GitHub.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey),
+                    )
+                  ),
+                );
+              }
+
+              final data = group.githubStats;
+              if (data == null || data.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(
+                    child: Text(
+                      'Đã có link. Vui lòng bấm nút Đồng bộ (Reload) ở màn hình danh sách để tải dữ liệu.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey),
+                    )
+                  ),
                 );
               }
 
@@ -350,13 +373,11 @@ class GroupDetailScreen extends ConsumerWidget {
                 final username = item['username']?.toString() ?? 'Unknown';
                 final color = colors[i % colors.length];
 
-                // Add to legends
                 legendWidgets.add(
                   _buildLegendItem(username, '${(percentage * 100).toInt()}%', color),
                 );
                 if (i < data.length - 1) legendWidgets.add(const SizedBox(height: 12));
 
-                // Add to chart
                 currentTotal += percentage;
                 chartWidgets.insert(0, SizedBox(
                   width: 100,
@@ -398,8 +419,6 @@ class GroupDetailScreen extends ConsumerWidget {
                 ],
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, st) => Text('Lỗi: $e', style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
