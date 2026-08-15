@@ -70,7 +70,7 @@ class GroupRepository {
 
       if (group.docsUrl != null && group.docsUrl!.isNotEmpty) {
         final docStats = await docsRepo.fetchDocsContributions(group.docsUrl!);
-        print('Fetched Docs Stats: $docStats');
+        debugPrint('Fetched Docs Stats: $docStats');
         docsStats = docStats ?? [];
       }
 
@@ -80,7 +80,7 @@ class GroupRepository {
           'docsStats': docsStats,
           'lastSynced': FieldValue.serverTimestamp(),
         };
-        print('Updating Firestore document for group ${group.id} with payload: $updateData');
+        debugPrint('Updating Firestore document for group ${group.id} with payload: $updateData');
         await _firestore.collection('groups').doc(group.id).update(updateData);
       } catch (e) {
         debugPrint('Failed to sync group ${group.id}: $e');
