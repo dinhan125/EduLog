@@ -631,8 +631,9 @@ class _MemberItemCardState extends State<_MemberItemCard> {
             context,
             MaterialPageRoute(
               builder: (context) => OralExamScreen(
-                studentName: widget.user.name,
+                student: widget.user,
                 groupName: widget.group.name,
+                group: widget.group,
               ),
             ),
           );
@@ -715,8 +716,9 @@ class _MemberItemCardState extends State<_MemberItemCard> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => OralExamScreen(
-                        studentName: widget.user.name,
+                        student: widget.user,
                         groupName: widget.group.name,
+                        group: widget.group,
                       ),
                     ),
                   );
