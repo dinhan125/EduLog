@@ -1,3 +1,4 @@
+import 'dart:io';
 import '../entities/class_entity.dart';
 import '../entities/group_entity.dart';
 import '../entities/member_entity.dart';
@@ -20,4 +21,5 @@ abstract class StudentDashboardRepository {
   Future<void> sendGroupInvite(String targetUid, String groupId, String groupName);
   Stream<List<NotificationModel>> getNotificationsStream(String uid);
   Future<void> respondToGroupInvite(String notificationId, String groupId, bool isAccepted);
+  Future<String?> uploadImageToImgBB(File imageFile);
 }
