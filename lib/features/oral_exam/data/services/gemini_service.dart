@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter/foundation.dart';
 
@@ -7,7 +8,7 @@ class GeminiService {
   GeminiService()
       : _model = GenerativeModel(
           model: 'gemini-3.5-flash',
-          apiKey: '',
+          apiKey: dotenv.env['GEMINI_API_KEY'] ?? '',
         );
 
   Future<String?> analyzeStudentWork({
