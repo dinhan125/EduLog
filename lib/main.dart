@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +14,7 @@ import 'features/auth/presentation/login_screen.dart';
 void main() async {
   // Đảm bảo các binding của Flutter đã được khởi tạo trước khi gọi Native code
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
   
   // Khởi tạo kết nối Firebase với cấu hình tương ứng của nền tảng hiện tại
   await Firebase.initializeApp(
