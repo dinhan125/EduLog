@@ -5,6 +5,7 @@ import '../providers/oral_exam_provider.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../data/models/exam_question_model.dart';
+import '../../../group_management/data/repositories/group_repository.dart';
 
 class OralExamScreen extends ConsumerStatefulWidget {
   final UserModel student;
@@ -66,6 +67,15 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
         question.evaluation = StudentEvaluation.khongTraLoi;
       }
     });
+  }
+
+  double get _suggestedScore {
+    List<int> validScores = questions.where((q) => q.isSelected && q.score != null).map((q) => q.score!).toList();
+    double avgQuestionScore = 0;
+    if (validScores.isNotEmpty) {
+      avgQuestionScore = validScores.reduce((a, b) => a + b) / validScores.length;
+    }
+    return (mockCommitScore * 0.3) + (avgQuestionScore * 0.7);
   }
 
   Widget _buildHeader() {
@@ -657,7 +667,42 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: isScoreConfirmed ? () {} : null,
+                onPressed: isScoreConfirmed ? () async {
+                  final repo = ref.read(groupRepositoryProvider);
+                  
+                  final commitData = {
+                    'score': mockCommitScore,
+                    'totalCommits': 5,
+                    'passedCommits': 3,
+                  };
+
+                  final selectedQuestions = questions.where((q) => q.isSelected).map((q) => {
+                    'title': q.title,
+                    'category': q.category.toString(),
+                    'evaluation': q.evaluation.toString(),
+                    'score': q.score,
+                  }).toList();
+
+                  try {
+                    await repo.saveExamResult(
+                      groupId: widget.group.id,
+                      studentId: widget.student.uid,
+                      finalScore: selectedWholeScore + (selectedDecimalScore / 10),
+                      suggestedScore: _suggestedScore,
+                      commitData: commitData,
+                      questions: selectedQuestions,
+                      teacherReview: _commentController.text,
+                    );
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lưu điểm thành công!'), backgroundColor: Colors.green));
+                      Navigator.pop(context);
+                    }
+                  } catch (e) {
+                     if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e'), backgroundColor: Colors.red));
+                     }
+                  }
+                } : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1565C0),
                   foregroundColor: Colors.white,
@@ -939,8 +984,7 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
     if (validScores.isNotEmpty) {
       avgQuestionScore = validScores.reduce((a, b) => a + b) / validScores.length;
     }
-    
-    double suggestedScore = (mockCommitScore * 0.3) + (avgQuestionScore * 0.7);
+    double suggestedScore = _suggestedScore;
     String formattedSuggested = suggestedScore.toStringAsFixed(1);
 
     return Card(
@@ -992,7 +1036,25 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
                 children: [
                   const Icon(Icons.check_circle_outline, color: Colors.blue, size: 16),
                   const SizedBox(width: 8),
-                  Text('Điểm gợi ý: $formattedSuggested/10 — Chỉnh bên dưới để xác nhận.', style: const TextStyle(color: Colors.blue, fontSize: 11)),
+                  Expanded(child: Text('Điểm gợi ý: $formattedSuggested/10 — Chỉnh bên dưới để xác nhận.', style: const TextStyle(color: Colors.blue, fontSize: 11))),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        selectedWholeScore = suggestedScore.floor();
+                        selectedDecimalScore = ((suggestedScore - suggestedScore.floor()) * 10).round();
+                        isScoreConfirmed = false;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text('Đồng bộ', style: TextStyle(fontSize: 11)),
+                  ),
                 ],
               ),
             ),
