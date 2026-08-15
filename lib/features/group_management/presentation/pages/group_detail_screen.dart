@@ -567,7 +567,7 @@ class GroupDetailScreen extends ConsumerWidget {
   }
 }
 
-class _MemberItemCard extends StatefulWidget {
+class _MemberItemCard extends ConsumerStatefulWidget {
   final dynamic user;
   final String initials;
   final Map<String, dynamic> config;
@@ -581,10 +581,10 @@ class _MemberItemCard extends StatefulWidget {
   });
 
   @override
-  State<_MemberItemCard> createState() => _MemberItemCardState();
+  ConsumerState<_MemberItemCard> createState() => _MemberItemCardState();
 }
 
-class _MemberItemCardState extends State<_MemberItemCard> {
+class _MemberItemCardState extends ConsumerState<_MemberItemCard> {
   bool _isPhotoTaken = false;
 
   Future<void> _takePhoto() async {
@@ -627,7 +627,7 @@ class _MemberItemCardState extends State<_MemberItemCard> {
           );
 
           // Auto navigate to OralExamScreen
-          Navigator.push(
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => OralExamScreen(
@@ -637,6 +637,7 @@ class _MemberItemCardState extends State<_MemberItemCard> {
               ),
             ),
           );
+          ref.invalidate(examResultProvider('${widget.group.id}_${widget.user.uid}'));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -651,6 +652,10 @@ class _MemberItemCardState extends State<_MemberItemCard> {
 
   @override
   Widget build(BuildContext context) {
+    final examResultAsync = ref.watch(examResultProvider('${widget.group.id}_${widget.user.uid}'));
+    final hasResult = examResultAsync.value != null;
+    final finalScore = hasResult ? (examResultAsync.value!['finalScore'] as num).toDouble() : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -675,15 +680,47 @@ class _MemberItemCardState extends State<_MemberItemCard> {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                widget.user.name,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.user.name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  if (_isPhotoTaken || hasResult)
+                    const SizedBox(height: 4),
+                  if (_isPhotoTaken || hasResult)
+                    Row(
+                      children: [
+                        if (_isPhotoTaken)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(4)),
+                            child: const Text('Đã chụp ảnh xác minh', style: TextStyle(color: Colors.blue, fontSize: 10, fontWeight: FontWeight.bold)),
+                          ),
+                        if (_isPhotoTaken && hasResult)
+                          const SizedBox(width: 8),
+                        if (hasResult)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(4)),
+                            child: const Text('Đã hoàn thành', style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
+                          ),
+                      ],
+                    ),
+                ],
               ),
             ),
+            if (hasResult)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.green.shade200)),
+                child: Text('${finalScore?.toStringAsFixed(1) ?? 'N/A'}/10', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16)),
+              ),
           ],
         ),
         const SizedBox(height: 16),
@@ -711,8 +748,8 @@ class _MemberItemCardState extends State<_MemberItemCard> {
             const SizedBox(width: 8),
             Expanded(
               child: FilledButton.tonalIcon(
-                onPressed: () {
-                  Navigator.push(
+                onPressed: () async {
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => OralExamScreen(
@@ -722,6 +759,7 @@ class _MemberItemCardState extends State<_MemberItemCard> {
                       ),
                     ),
                   );
+                  ref.invalidate(examResultProvider('${widget.group.id}_${widget.user.uid}'));
                 },
                 icon: const Icon(Icons.play_arrow, size: 18),
                 label: const Text(
