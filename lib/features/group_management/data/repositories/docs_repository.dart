@@ -17,7 +17,7 @@ class DocsRepository {
     try {
       final url = Uri.parse('$docsApiUrl?docsLink=${Uri.encodeComponent(docsLink)}');
       final response = await http.get(url);
-      print('Docs API Raw Response: ${response.body}');
+      debugPrint('Docs API Raw Response: ${response.body}');
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
