@@ -18,7 +18,10 @@ final groupMembersProvider = FutureProvider.family<List<UserModel>, String>((ref
   return repository.getGroupMembers(idList);
 });
 
-
+final examResultProvider = FutureProvider.family<Map<String, dynamic>?, String>((ref, docId) async {
+  final repository = ref.read(groupRepositoryProvider);
+  return repository.getExamResult(docId);
+});
 
 class GroupRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -85,6 +88,45 @@ class GroupRepository {
       } catch (e) {
         debugPrint('Failed to sync group ${group.id}: $e');
       }
+    }
+  }
+
+  Future<void> saveExamResult({
+    required String groupId,
+    required String studentId,
+    required double finalScore,
+    required double suggestedScore,
+    required Map<String, dynamic> commitData,
+    required List<Map<String, dynamic>> questions,
+    required String teacherReview,
+  }) async {
+    try {
+      await _firestore.collection('exam_results').doc('${groupId}_$studentId').set({
+        'groupId': groupId,
+        'studentId': studentId,
+        'finalScore': finalScore,
+        'suggestedScore': suggestedScore,
+        'commitData': commitData,
+        'questions': questions,
+        'teacherReview': teacherReview,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('Error saving exam result: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getExamResult(String docId) async {
+    try {
+      final doc = await _firestore.collection('exam_results').doc(docId).get();
+      if (doc.exists) {
+        return doc.data();
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching exam result: $e');
+      return null;
     }
   }
 }

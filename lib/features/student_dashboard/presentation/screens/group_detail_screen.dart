@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/group_management_provider.dart';
 import '../widgets/member_item.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/group_entity.dart';
 import '../../domain/entities/member_entity.dart';
@@ -33,6 +34,15 @@ class GroupDetailScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showExamResultDetails(BuildContext context, Map<String, dynamic> data) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => _ExamResultSheet(data: data),
     );
   }
 
@@ -204,69 +214,79 @@ class GroupDetailScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
 
-              // 3. Kết quả Vấn đáp (Đã ẩn vì Database chưa có)
-              /*
-              _buildSectionCard(
-                title: 'Kết quả Vấn đáp',
-                icon: Icons.military_tech_outlined,
-                content: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Điểm tổng', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-                        const SizedBox(height: 4),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
+              // 3. Kết quả Vấn đáp
+              FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance.collection('exam_results').doc('${group.id}_${FirebaseAuth.instance.currentUser?.uid}').get(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox();
+                  if (!snapshot.hasData || !snapshot.data!.exists) return const SizedBox();
+                  
+                  final data = snapshot.data!.data() as Map<String, dynamic>;
+                  final finalScore = data['finalScore']?.toString() ?? 'N/A';
+                  
+                  return Column(
+                    children: [
+                      _buildSectionCard(
+                        title: 'Kết quả Vấn đáp',
+                        icon: Icons.military_tech_outlined,
+                        content: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            const Text(
-                              '8.5',
-                              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF1976D2)),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Điểm tổng', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                                const SizedBox(height: 4),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                                  textBaseline: TextBaseline.alphabetic,
+                                  children: [
+                                    Text(
+                                      finalScore,
+                                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF1976D2)),
+                                    ),
+                                    Text(
+                                      ' /10',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                            Text(
-                              ' /10',
-                              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade50,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text('Đã chấm điểm', style: TextStyle(color: Colors.green.shade700, fontSize: 12, fontWeight: FontWeight.bold)),
+                                ),
+                                const SizedBox(height: 12),
+                                InkWell(
+                                  onTap: () {
+                                    _showExamResultDetails(context, data);
+                                  },
+                                  child: Row(
+                                    children: const [
+                                      Text('Xem chi tiết', style: TextStyle(color: Color(0xFF1976D2), fontSize: 13, fontWeight: FontWeight.w600)),
+                                      Icon(Icons.chevron_right, size: 16, color: Color(0xFF1976D2)),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.green.shade50,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text('Đã chấm điểm', style: TextStyle(color: Colors.green.shade700, fontSize: 12, fontWeight: FontWeight.bold)),
-                        ),
-                        const SizedBox(height: 12),
-                        InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const QuestionResultScreen()),
-                            );
-                          },
-                          child: Row(
-                            children: const [
-                              Text('Xem chi tiết', style: TextStyle(color: Color(0xFF1976D2), fontSize: 13, fontWeight: FontWeight.w600)),
-                              Icon(Icons.chevron_right, size: 16, color: Color(0xFF1976D2)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+                  );
+                },
               ),
-              const SizedBox(height: 32),
-              */
               
               // 4. Rời nhóm
               SizedBox(
@@ -481,3 +501,142 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
     );
   }
 }
+
+class _ExamResultSheet extends StatelessWidget {
+  final Map<String, dynamic> data;
+
+  const _ExamResultSheet({required this.data});
+
+  Widget _buildScoreCard(String title, String score, MaterialColor color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        color: color.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.shade100),
+      ),
+      child: Column(
+        children: [
+          Text(title, style: TextStyle(color: color.shade700, fontSize: 11, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text(score, style: TextStyle(color: color.shade700, fontSize: 20, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFinalScoreCard(String score) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.green.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        children: [
+          const Text('Xác nhận', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text(score, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final questions = List<Map<String, dynamic>>.from(data['questions'] ?? []);
+    final teacherReview = data['teacherReview']?.toString() ?? 'Không có nhận xét';
+    final commitData = data['commitData'] as Map<String, dynamic>?;
+    final commitScore = commitData?['score']?.toString() ?? 'N/A';
+    
+    final suggestedScoreRaw = data['suggestedScore'];
+    final suggestedScore = suggestedScoreRaw != null ? (suggestedScoreRaw as num).toDouble().toStringAsFixed(1) : 'N/A';
+    
+    final finalScore = data['finalScore']?.toString() ?? 'N/A';
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.8,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Chi tiết Vấn đáp', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+            ],
+          ),
+          const Divider(),
+          Expanded(
+            child: ListView(
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: _buildScoreCard('Điểm Commit', commitScore, Colors.blue)),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildScoreCard('Gợi ý', suggestedScore, Colors.orange)),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildFinalScoreCard(finalScore)),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                const Text('Danh sách câu hỏi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                const SizedBox(height: 12),
+                if (questions.isEmpty)
+                  const Text('Không có câu hỏi nào', style: TextStyle(color: Colors.grey)),
+                ...questions.map((q) => Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(q['title'] ?? 'Câu hỏi', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text('${q['score'] ?? 0}/10', style: TextStyle(color: Colors.blue.shade700, fontWeight: FontWeight.bold)),
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text('Đánh giá: ${q['evaluation']?.toString().split('.').last ?? 'N/A'}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                    ],
+                  ),
+                )),
+                const SizedBox(height: 24),
+                const Text('Nhận xét tổng quan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Text(teacherReview, style: TextStyle(color: Colors.grey.shade800, height: 1.5)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
