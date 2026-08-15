@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/class_entity.dart';
 import 'package:provider/provider.dart';
 import '../providers/group_management_provider.dart';
+import '../providers/student_dashboard_provider.dart';
 import '../screens/group_selection_screen.dart';
 import '../screens/group_detail_screen.dart';
 
@@ -17,6 +18,9 @@ class ClassListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dashboardProvider = context.watch<StudentDashboardProvider>();
+    final group = dashboardProvider.userGroups[classItem.id];
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -153,13 +157,17 @@ class ClassListItem extends StatelessWidget {
                       style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
                     const SizedBox(width: 20),
-                    Icon(Icons.book_outlined, size: 18, color: topBorderColor),
+                    Icon(
+                      group != null ? Icons.group : Icons.book_outlined,
+                      size: 18,
+                      color: group != null ? topBorderColor : Colors.grey[400],
+                    ),
                     const SizedBox(width: 6),
                     Text(
-                      classItem.group,
+                      group != null ? 'Nhóm: ${group.name}' : 'Chưa có nhóm',
                       style: TextStyle(
-                        color: topBorderColor,
-                        fontWeight: FontWeight.bold,
+                        color: group != null ? topBorderColor : Colors.grey[500],
+                        fontWeight: group != null ? FontWeight.bold : FontWeight.w500,
                         fontSize: 14,
                       ),
                     ),
