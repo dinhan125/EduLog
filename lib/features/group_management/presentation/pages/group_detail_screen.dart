@@ -686,25 +686,55 @@ class _MemberItemCardState extends State<_MemberItemCard> {
           ],
         ),
         const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _takePhoto,
-            icon: Icon(_isPhotoTaken ? Icons.check_circle : Icons.camera_alt_outlined, size: 18),
-            label: Text(
-              _isPhotoTaken ? 'Đã chụp' : 'Chụp ảnh',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _isPhotoTaken ? Colors.green : const Color(0xFF1976D2),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _takePhoto,
+                icon: Icon(_isPhotoTaken ? Icons.check_circle : Icons.camera_alt_outlined, size: 18),
+                label: Text(
+                  _isPhotoTaken ? 'Đã chụp' : 'Chụp ảnh',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isPhotoTaken ? Colors.green : const Color(0xFF1976D2),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ),
             ),
-          ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: FilledButton.tonalIcon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OralExamScreen(
+                        studentName: widget.user.name,
+                        groupName: widget.group.name,
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.play_arrow, size: 18),
+                label: const Text(
+                  'Vấn đáp',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
