@@ -22,6 +22,7 @@ class _OralExamScreenState extends State<OralExamScreen> with SingleTickerProvid
   final int mockCommitScore = 6;
   int selectedWholeScore = 7;
   int selectedDecimalScore = 4;
+  bool isScoreConfirmed = false;
   final TextEditingController _commentController = TextEditingController();
 
   @override
@@ -383,36 +384,47 @@ class _OralExamScreenState extends State<OralExamScreen> with SingleTickerProvid
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'ĐÁNH GIÁ CÂU TRẢ LỜI SINH VIÊN',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(child: _buildEvalBtn(question, StudentEvaluation.khongTraLoi, 'Không trả lời', Colors.red)),
-                    const SizedBox(width: 8),
-                    Expanded(child: _buildEvalBtn(question, StudentEvaluation.chuaDuY, 'Chưa đủ ý', Colors.orange)),
-                    const SizedBox(width: 8),
-                    Expanded(child: _buildEvalBtn(question, StudentEvaluation.traLoiTot, 'Trả lời tốt', Colors.green)),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const Row(
-                  children: [
-                    Icon(Icons.star_border, size: 14, color: Colors.blue),
-                    SizedBox(width: 4),
-                    Text(
-                      'CHẤM ĐIỂM CÂU NÀY',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue),
+                Opacity(
+                  opacity: !question.isSelected ? 0.4 : 1.0,
+                  child: AbsorbPointer(
+                    absorbing: !question.isSelected,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'ĐÁNH GIÁ CÂU TRẢ LỜI SINH VIÊN',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(child: _buildEvalBtn(question, StudentEvaluation.khongTraLoi, 'Không trả lời', Colors.red)),
+                            const SizedBox(width: 8),
+                            Expanded(child: _buildEvalBtn(question, StudentEvaluation.chuaDuY, 'Chưa đủ ý', Colors.orange)),
+                            const SizedBox(width: 8),
+                            Expanded(child: _buildEvalBtn(question, StudentEvaluation.traLoiTot, 'Trả lời tốt', Colors.green)),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        const Row(
+                          children: [
+                            Icon(Icons.star_border, size: 14, color: Colors.blue),
+                            SizedBox(width: 4),
+                            Text(
+                              'CHẤM ĐIỂM CÂU NÀY',
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: List.generate(11, (index) => _buildScoreBtn(question, index)),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: List.generate(11, (index) => _buildScoreBtn(question, index)),
+                  ),
                 ),
               ],
             ],
@@ -520,10 +532,12 @@ class _OralExamScreenState extends State<OralExamScreen> with SingleTickerProvid
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: isScoreConfirmed ? () {} : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1565C0),
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey.shade300,
+                  disabledForegroundColor: Colors.grey.shade500,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   elevation: 0,
@@ -532,34 +546,19 @@ class _OralExamScreenState extends State<OralExamScreen> with SingleTickerProvid
               ),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.save, size: 18),
-                    label: const Text('Lưu câu hỏi & Đánh giá', style: TextStyle(fontSize: 12)),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF1565C0),
-                      side: const BorderSide(color: Color(0xFF1565C0)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                  ),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close, size: 18),
+                label: const Text('Hủy', style: TextStyle(fontSize: 14)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.grey.shade700,
+                  side: BorderSide(color: Colors.grey.shade300),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                const SizedBox(width: 8),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, size: 18),
-                  label: const Text('Hủy', style: TextStyle(fontSize: 12)),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.grey.shade700,
-                    side: BorderSide(color: Colors.grey.shade300),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                ),
-              ],
+              ),
             ),
           ],
         ),
@@ -1014,14 +1013,20 @@ class _OralExamScreenState extends State<OralExamScreen> with SingleTickerProvid
                     ],
                   ),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: isScoreConfirmed ? null : () {
+                      setState(() {
+                        isScoreConfirmed = true;
+                      });
+                    },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: isScoreConfirmed ? Colors.green : Colors.blue,
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.green,
+                      disabledForegroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    child: const Text('Xác nhận', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text(isScoreConfirmed ? 'Đã xác nhận' : 'Xác nhận', style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),

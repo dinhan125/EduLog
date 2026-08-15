@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import '../../../student_dashboard/data/repositories/firebase_student_repository_impl.dart';
 import '../../data/repositories/github_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -527,7 +530,12 @@ class GroupDetailScreen extends ConsumerWidget {
                       ? user.name.trim().split(RegExp(r'\s+')).map((e) => e.isNotEmpty ? e[0].toUpperCase() : '').take(2).join() 
                       : '?';
 
-                  return _buildMemberItem(context, user.name, initials, config);
+                  return _MemberItemCard(
+                    user: user,
+                    initials: initials,
+                    config: config,
+                    group: group,
+                  );
                 },
               );
             },
@@ -538,8 +546,91 @@ class GroupDetailScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildMemberItem(BuildContext context, String name, String initials, Map<String, dynamic> config) {
+class _MemberItemCard extends StatefulWidget {
+  final dynamic user;
+  final String initials;
+  final Map<String, dynamic> config;
+  final GroupEntity group;
+
+  const _MemberItemCard({
+    required this.user,
+    required this.initials,
+    required this.config,
+    required this.group,
+  });
+
+  @override
+  State<_MemberItemCard> createState() => _MemberItemCardState();
+}
+
+class _MemberItemCardState extends State<_MemberItemCard> {
+  bool _isPhotoTaken = false;
+
+  Future<void> _takePhoto() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.camera, imageQuality: 50);
+
+    if (image != null) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const AlertDialog(
+            content: Row(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 16),
+                Text('Đang lưu ảnh xác thực...'),
+              ],
+            ),
+          ),
+        );
+      }
+
+      final repo = FirebaseStudentRepositoryImpl();
+      final url = await repo.uploadImageToImgBB(File(image.path));
+
+      if (mounted) {
+        Navigator.pop(context); // Close dialog
+
+        if (url != null) {
+          setState(() {
+            _isPhotoTaken = true;
+          });
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Lưu ảnh thành công!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Auto navigate to OralExamScreen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OralExamScreen(
+                studentName: widget.user.name,
+                groupName: widget.group.name,
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Lỗi khi tải ảnh lên!'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -549,14 +640,14 @@ class GroupDetailScreen extends ConsumerWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: config['bgColor'] as Color,
+                color: widget.config['bgColor'] as Color,
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
               child: Text(
-                initials,
+                widget.initials,
                 style: TextStyle(
-                  color: config['color'] as Color,
+                  color: widget.config['color'] as Color,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -565,7 +656,7 @@ class GroupDetailScreen extends ConsumerWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                name,
+                widget.user.name,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -576,60 +667,28 @@ class GroupDetailScreen extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.camera_alt_outlined, size: 18),
-                label: const Text(
-                  'Chụp ảnh',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1976D2),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _takePhoto,
+            icon: Icon(_isPhotoTaken ? Icons.check_circle : Icons.camera_alt_outlined, size: 18),
+            label: Text(
+              _isPhotoTaken ? 'Đã chụp' : 'Chụp ảnh',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _isPhotoTaken ? Colors.green : const Color(0xFF1976D2),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => OralExamScreen(
-                        studentName: name,
-                        groupName: group.name,
-                      ),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.play_arrow, size: 18),
-                label: const Text(
-                  'Vấn đáp',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE3F2FD),
-                  foregroundColor: const Color(0xFF1976D2),
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ],
     );
   }
 }
+
