@@ -23,6 +23,9 @@ jobs:
         with:
           channel: 'stable'
 
+      # Generate dummy .env file
+      - run: cp .env.example .env
+
       # 3. Tải các thư viện phụ thuộc (pubspec.yaml)
       - name: Install dependencies
         run: flutter pub get

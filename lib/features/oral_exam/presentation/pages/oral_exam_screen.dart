@@ -1,21 +1,28 @@
+import '../../../../core/models/user_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../student_dashboard/domain/entities/group_entity.dart';
+import '../providers/oral_exam_provider.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../data/models/exam_question_model.dart';
 
-class OralExamScreen extends StatefulWidget {
-  final String studentName;
+class OralExamScreen extends ConsumerStatefulWidget {
+  final UserModel student;
   final String groupName;
+  final GroupEntity group;
 
   const OralExamScreen({
     super.key,
-    required this.studentName,
+    required this.student,
     required this.groupName,
+    required this.group,
   });
 
   @override
-  State<OralExamScreen> createState() => _OralExamScreenState();
+  ConsumerState<OralExamScreen> createState() => _OralExamScreenState();
 }
 
-class _OralExamScreenState extends State<OralExamScreen> with SingleTickerProviderStateMixin {
+class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<ExamQuestionModel> questions = [];
 
@@ -29,16 +36,7 @@ class _OralExamScreenState extends State<OralExamScreen> with SingleTickerProvid
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    questions = mockExamQuestions.map((q) => ExamQuestionModel(
-      id: q.id,
-      category: q.category,
-      title: q.title,
-      detailedQuestion: q.detailedQuestion,
-      isSelected: q.isSelected,
-      isExpanded: q.isExpanded,
-      evaluation: q.evaluation,
-      score: q.score,
-    )).toList();
+    questions = [];
   }
 
   @override
@@ -98,7 +96,7 @@ class _OralExamScreenState extends State<OralExamScreen> with SingleTickerProvid
             children: [
               Expanded(
                 child: Text(
-                  '${widget.studentName} — ${widget.groupName}',
+                  '${widget.student.name} — ${widget.groupName}',
                   style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -169,21 +167,117 @@ class _OralExamScreenState extends State<OralExamScreen> with SingleTickerProvid
           children: [
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade400, style: BorderStyle.solid),
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.grey.shade50,
-                ),
-                child: const Center(
-                  child: Text(
-                    '// TODO: Tích hợp nội dung tóm tắt từ backend/AI sau',
-                    style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-                    textAlign: TextAlign.center,
+              child: ref.watch(aiSummaryProvider(AiSummaryParams(
+                studentName: widget.student.name,
+                githubUsername: widget.student.githubUsername ?? widget.student.name,
+                googleDisplayName: widget.student.googleDisplayName ?? widget.student.name,
+                githubStats: widget.group.githubStats ?? [],
+                docsLink: widget.group.docsUrl ?? '',
+              ))).when(
+                data: (data) {
+                  if (data == null || data.isEmpty) {
+                    return const Center(child: Text('Không thể lấy phản hồi từ AI.'));
+                  }
+                  try {
+                    final aiData = jsonDecode(data);
+                    
+                    final module = aiData['module_phu_trach'] ?? 'N/A';
+                    final githubEval = aiData['github_evaluation'] ?? {};
+                    final totalCommits = githubEval['total_commits'] ?? 0;
+                    final passedCommits = githubEval['passed_commits'] ?? 0;
+                    final status = githubEval['status'] ?? 'N/A';
+                    final docsSummary = aiData['docs_summary'] as List<dynamic>? ?? [];
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'MODULE PHỤ TRÁCH',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          module.toString(),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1565C0)),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'GITHUB COMMITS',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Text(
+                              '$totalCommits TỔNG • $passedCommits ĐẠT CHUẨN',
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.green.shade50,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                status.toString(),
+                                style: TextStyle(color: Colors.green.shade700, fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'GOOGLE DOCS ĐÃ VIẾT',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 8),
+                        if (docsSummary.isEmpty)
+                          const Text('Không có tóm tắt Docs.', style: TextStyle(color: Colors.grey))
+                        else
+                          ...docsSummary.map((sec) {
+                            final title = sec['section_title'] ?? 'Không có tiêu đề';
+                            final words = sec['word_count'] ?? 0;
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: ListTile(
+                                leading: const Icon(Icons.description, color: Colors.grey),
+                                title: Text(
+                                  title.toString(),
+                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                                ),
+                                trailing: Text(
+                                  '$words từ',
+                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            );
+                          }),
+                      ],
+                    );
+                  } catch (e) {
+                    return Center(child: Text('Lỗi parse dữ liệu AI: $e\nRaw: $data'));
+                  }
+                },
+                loading: () => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 12),
+                        Text('AI đang phân tích dữ liệu...', style: TextStyle(color: Colors.grey)),
+                      ],
+                    ),
                   ),
                 ),
+                error: (e, st) => Center(child: Text('Lỗi AI: $e', style: const TextStyle(color: Colors.red))),
               ),
             ),
           ],
@@ -193,6 +287,37 @@ class _OralExamScreenState extends State<OralExamScreen> with SingleTickerProvid
   }
 
   Widget _buildQuestionsList() {
+    if (questions.isEmpty) {
+      final aiSummary = ref.watch(aiSummaryProvider(AiSummaryParams(
+        studentName: widget.student.name,
+        githubUsername: widget.student.githubUsername ?? widget.student.name,
+        googleDisplayName: widget.student.googleDisplayName ?? widget.student.name,
+        githubStats: widget.group.githubStats ?? [],
+        docsLink: widget.group.docsUrl ?? '',
+      )));
+
+      return aiSummary.when(
+        data: (data) => const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Text('Không có câu hỏi nào được tạo.', style: TextStyle(color: Colors.grey)),
+          ),
+        ),
+        loading: () => const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: CircularProgressIndicator(),
+          ),
+        ),
+        error: (e, st) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Text('Lỗi tải câu hỏi: $e', style: const TextStyle(color: Colors.red)),
+          ),
+        ),
+      );
+    }
+
     Map<ExamCategory, List<ExamQuestionModel>> grouped = {
       ExamCategory.nhanBiet: [],
       ExamCategory.hieuLogic: [],
@@ -568,6 +693,45 @@ class _OralExamScreenState extends State<OralExamScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final aiSummary = ref.watch(aiSummaryProvider(AiSummaryParams(
+      studentName: widget.student.name,
+      githubUsername: widget.student.githubUsername ?? widget.student.name,
+      googleDisplayName: widget.student.googleDisplayName ?? widget.student.name,
+      githubStats: widget.group.githubStats ?? [],
+      docsLink: widget.group.docsUrl ?? '',
+    )));
+
+    if (questions.isEmpty && aiSummary is AsyncData<String?> && aiSummary.value != null) {
+      try {
+        final aiData = jsonDecode(aiSummary.value!);
+        final List<dynamic> rawQuestions = aiData['questions'] ?? [];
+        if (rawQuestions.isNotEmpty) {
+          questions = rawQuestions.asMap().entries.map((entry) {
+            final index = entry.key;
+            final q = entry.value;
+            
+            final typeStr = q['type']?.toString() ?? 'NHẬN BIẾT';
+            ExamCategory category = ExamCategory.nhanBiet;
+            if (typeStr == 'HIỂU LOGIC') {
+              category = ExamCategory.hieuLogic;
+            } else if (typeStr == 'TỐI ƯU HÓA') {
+              category = ExamCategory.toiUuHoa;
+            }
+
+            return ExamQuestionModel(
+              id: (index + 1).toString(),
+              category: category,
+              title: q['title']?.toString() ?? '',
+              detailedQuestion: q['detail']?.toString() ?? '',
+              isSelected: index == 0,
+            );
+          }).toList();
+        }
+      } catch (e) {
+        debugPrint('Error parsing questions: $e');
+      }
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: Column(
