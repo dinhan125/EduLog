@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../../domain/repositories/student_dashboard_repository.dart';
 import '../../domain/entities/class_entity.dart';
 import '../../domain/entities/group_entity.dart';
@@ -87,7 +90,7 @@ class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
   }
 
   @override
-  Future<GroupEntity> createGroup(String classId, String groupName) async {
+  Future<GroupModel> createGroup(String classId, String groupName, String? linkGithub, String? linkDocs) async {
     final docRef = await _firestore.collection('groups').add({
       'ma_lop': classId,
       'ten_nhom': groupName,
@@ -96,10 +99,20 @@ class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
       'ngay_tao': FieldValue.serverTimestamp(),
       'pendingRequests': [],
       'maxMembers': 4,
+      'link_github': linkGithub,
+      'link_docs': linkDocs,
     });
     
     final docSnap = await docRef.get();
     return GroupModel.fromJson(docSnap.data()!, docSnap.id);
+  }
+
+  @override
+  Future<void> updateGroupLinks(String groupId, String linkGithub, String linkDocs) async {
+    await _firestore.collection('groups').doc(groupId).update({
+      'link_github': linkGithub,
+      'link_docs': linkDocs,
+    });
   }
 
   @override
@@ -231,5 +244,28 @@ class FirebaseStudentRepositoryImpl implements StudentDashboardRepository {
       });
     }
     await _firestore.collection('notifications').doc(notificationId).delete();
+  }
+
+  @override
+  Future<String?> uploadImageToImgBB(File imageFile) async {
+    try {
+      String base64Image = base64Encode(imageFile.readAsBytesSync());
+      var url = Uri.parse('https://api.imgbb.com/1/upload');
+      var response = await http.post(
+        url,
+        body: {
+          'key': 'db3080d1a9734374116a3a564f3135c2',
+          'image': base64Image,
+        },
+      );
+      if (response.statusCode == 200) {
+        var jsonResponse = jsonDecode(response.body);
+        return jsonResponse['data']['url'];
+      }
+      return null;
+    } catch (e) {
+      // ignore error
+      return null;
+    }
   }
 }

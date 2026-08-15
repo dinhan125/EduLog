@@ -1,3 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../data/models/group_model.dart';
 import 'package:flutter/material.dart';
 import '../../domain/repositories/student_dashboard_repository.dart';
 import '../../domain/usecases/join_class_usecase.dart';
@@ -21,6 +24,8 @@ class StudentDashboardProvider extends ChangeNotifier {
   List<ClassEntity> _classes = [];
   List<ClassEntity> get classes => _classes;
 
+  Map<String, GroupModel> userGroups = {};
+
   String _userName = 'Sinh viên';
   String get userName => _userName;
 
@@ -40,6 +45,20 @@ class StudentDashboardProvider extends ChangeNotifier {
 
     try {
       _classes = await repository.getJoinedClasses();
+      
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        final groupsSnapshot = await FirebaseFirestore.instance
+            .collection('groups')
+            .where('thanh_vien', arrayContains: uid)
+            .get();
+        
+        userGroups.clear();
+        for (var doc in groupsSnapshot.docs) {
+          final group = GroupModel.fromJson(doc.data(), doc.id);
+          userGroups[group.classId] = group;
+        }
+      }
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
