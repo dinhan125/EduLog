@@ -1,3 +1,4 @@
+import '../screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/student_dashboard_provider.dart';
@@ -128,10 +129,18 @@ class _DashboardHeaderState extends State<DashboardHeader> {
           // User Info Row
           Row(
             children: [
-              const CircleAvatar(
-                radius: 25,
-                backgroundColor: Colors.white24,
-                child: Icon(Icons.school, color: Colors.white, size: 30),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                  );
+                },
+                child: const CircleAvatar(
+                  radius: 25,
+                  backgroundColor: Colors.white24,
+                  child: Icon(Icons.school, color: Colors.white, size: 30),
+                ),
               ),
               const SizedBox(width: 15),
               Expanded(

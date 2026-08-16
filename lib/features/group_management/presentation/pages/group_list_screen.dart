@@ -12,6 +12,18 @@ final classGroupsProvider = FutureProvider.family<List<GroupEntity>, String>((re
   return repository.getGroupsForClass(classId);
 });
 
+final groupGradedCountProvider = FutureProvider.family<int, GroupEntity>((ref, group) async {
+  final repo = ref.read(groupRepositoryProvider);
+  int count = 0;
+  for (var member in group.members) {
+    final result = await repo.getExamResult('${group.id}_${member.id}');
+    if (result != null) {
+      count++;
+    }
+  }
+  return count;
+});
+
 class GroupListScreen extends ConsumerWidget {
   final ClassModel classModel;
   const GroupListScreen({super.key, required this.classModel});
@@ -114,26 +126,7 @@ class GroupListScreen extends ConsumerWidget {
                       }
                     },
                   ),
-                  const SizedBox(width: 4),
-                  ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.add, size: 16, color: Color(0xFF1565C0)),
-                    label: const Text(
-                      'Tạo',
-                      style: TextStyle(
-                        color: Color(0xFF1565C0),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
+
                 ],
               ],
             ),
@@ -316,23 +309,48 @@ class GroupListScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             itemCount: groups.length,
             itemBuilder: (context, index) {
-              return _buildGroupCard(context, groups[index]);
+              return _GroupCard(group: groups[index]);
             },
           ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildGroupCard(BuildContext context, GroupEntity group) {
-    final bool isCompleted = group.isFull; // Temporary logic to prevent dead code
+class _GroupCard extends ConsumerWidget {
+  final GroupEntity group;
+  
+  const _GroupCard({required this.group});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final gradedCountAsync = ref.watch(groupGradedCountProvider(group));
+    final gradedCount = gradedCountAsync.value ?? 0;
     
+    String statusText = 'Chưa bắt đầu';
+    Color statusBgColor = Colors.grey.shade100;
+    Color statusTextColor = Colors.grey.shade600;
+
+    if (group.members.isNotEmpty && gradedCount == group.members.length) {
+      statusText = 'Đã hoàn thành';
+      statusBgColor = const Color(0xFFE8F5E9);
+      statusTextColor = const Color(0xFF388E3C);
+    } else if (gradedCount > 0) {
+      statusText = 'Đang chấm điểm';
+      statusBgColor = Colors.orange.shade50;
+      statusTextColor = Colors.orange.shade800;
+    }
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => GroupDetailScreen(group: group)),
-        );
+        ).then((_) {
+          // Refresh count when coming back
+          ref.invalidate(groupGradedCountProvider(group));
+        });
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -415,15 +433,15 @@ class GroupListScreen extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isCompleted ? const Color(0xFFE8F5E9) : Colors.grey.shade100,
+                  color: statusBgColor,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  isCompleted ? 'Đã hoàn thành' : 'Chưa bắt đầu',
+                  statusText,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: isCompleted ? const Color(0xFF388E3C) : Colors.grey.shade600,
+                    color: statusTextColor,
                   ),
                 ),
               ),
@@ -434,7 +452,7 @@ class GroupListScreen extends ConsumerWidget {
     ));
   }
 
-  Widget _buildChip({
+  static Widget _buildChip({
     required IconData icon,
     required String text,
     required Color bgColor,
