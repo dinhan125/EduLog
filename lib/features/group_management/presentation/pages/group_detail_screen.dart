@@ -654,7 +654,7 @@ class _MemberItemCardState extends ConsumerState<_MemberItemCard> {
   Widget build(BuildContext context) {
     final examResultAsync = ref.watch(examResultProvider('${widget.group.id}_${widget.user.uid}'));
     final hasResult = examResultAsync.value != null;
-    final finalScore = hasResult ? (examResultAsync.value!['finalScore'] as num).toDouble() : null;
+    final finalScore = hasResult ? examResultAsync.value!.finalScore : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

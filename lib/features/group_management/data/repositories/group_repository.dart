@@ -1,3 +1,4 @@
+import '../../../../core/models/exam_result.dart';
 import 'docs_repository.dart';
 import 'github_repository.dart';
 import 'package:flutter/foundation.dart';
@@ -18,7 +19,7 @@ final groupMembersProvider = FutureProvider.family<List<UserModel>, String>((ref
   return repository.getGroupMembers(idList);
 });
 
-final examResultProvider = FutureProvider.family<Map<String, dynamic>?, String>((ref, docId) async {
+final examResultProvider = FutureProvider.family<ExamResult?, String>((ref, docId) async {
   final repository = ref.read(groupRepositoryProvider);
   return repository.getExamResult(docId);
 });
@@ -91,37 +92,20 @@ class GroupRepository {
     }
   }
 
-  Future<void> saveExamResult({
-    required String groupId,
-    required String studentId,
-    required double finalScore,
-    required double suggestedScore,
-    required Map<String, dynamic> commitData,
-    required List<Map<String, dynamic>> questions,
-    required String teacherReview,
-  }) async {
+  Future<void> saveExamResult(ExamResult result) async {
     try {
-      await _firestore.collection('exam_results').doc('${groupId}_$studentId').set({
-        'groupId': groupId,
-        'studentId': studentId,
-        'finalScore': finalScore,
-        'suggestedScore': suggestedScore,
-        'commitData': commitData,
-        'questions': questions,
-        'teacherReview': teacherReview,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      await _firestore.collection('exam_results').doc('${result.groupId}_${result.studentId}').set(result.toMap());
     } catch (e) {
       debugPrint('Error saving exam result: $e');
       rethrow;
     }
   }
 
-  Future<Map<String, dynamic>?> getExamResult(String docId) async {
+  Future<ExamResult?> getExamResult(String docId) async {
     try {
       final doc = await _firestore.collection('exam_results').doc(docId).get();
-      if (doc.exists) {
-        return doc.data();
+      if (doc.exists && doc.data() != null) {
+        return ExamResult.fromJson(doc.data()!);
       }
       return null;
     } catch (e) {

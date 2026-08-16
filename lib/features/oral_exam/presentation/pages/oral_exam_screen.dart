@@ -1,3 +1,4 @@
+import '../../../../core/models/exam_result.dart';
 import '../../../../core/models/user_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../student_dashboard/domain/entities/group_entity.dart';
@@ -35,6 +36,23 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
   int selectedDecimalScore = 4;
   bool isScoreConfirmed = false;
   final TextEditingController _commentController = TextEditingController();
+
+  bool _isInitializedFromSaved = false;
+  String? _modulePhuTrach;
+  List<dynamic>? _docsSummary;
+
+  ExamCategory _parseExamCategory(String str) {
+    if (str.contains('hieuLogic')) return ExamCategory.hieuLogic;
+    if (str.contains('toiUuHoa')) return ExamCategory.toiUuHoa;
+    return ExamCategory.nhanBiet;
+  }
+
+  StudentEvaluation _parseStudentEvaluation(String str) {
+    if (str.contains('traLoiTot')) return StudentEvaluation.traLoiTot;
+    if (str.contains('chuaDuY')) return StudentEvaluation.chuaDuY;
+    if (str.contains('khongTraLoi')) return StudentEvaluation.khongTraLoi;
+    return StudentEvaluation.none;
+  }
 
   @override
   void initState() {
@@ -166,7 +184,11 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
     );
   }
 
-  Widget _buildSummary() {
+  Widget _buildSummary(ExamResult? savedResult) {
+    if (_isInitializedFromSaved && savedResult != null) {
+      return _buildSavedSummaryView(savedResult);
+    }
+
     return Card(
       margin: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -200,6 +222,9 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
                     final passedCommits = githubEval['passed_commits'] ?? 0;
                     final status = githubEval['status'] ?? 'N/A';
                     final docsSummary = aiData['docs_summary'] as List<dynamic>? ?? [];
+
+                    _modulePhuTrach ??= module.toString();
+                    _docsSummary ??= docsSummary;
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,8 +324,118 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
     );
   }
 
-  Widget _buildQuestionsList() {
+  Widget _buildSavedSummaryView(ExamResult savedResult) {
+    final module = savedResult.modulePhuTrach ?? 'N/A';
+    final commitData = savedResult.commitData;
+    final totalCommits = commitData['totalCommits'] ?? 0;
+    final passedCommits = commitData['passedCommits'] ?? 0;
+    final status = commitData['score'] != null && (commitData['score'] as num) >= 6 ? 'Commit Đạt chuẩn' : 'Không đạt';
+    final docsSummary = savedResult.docsSummary ?? [];
+
+    return Card(
+      margin: const EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      color: Colors.white,
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          initiallyExpanded: true,
+          leading: const Icon(Icons.menu_book, color: Color(0xFF1565C0)),
+          title: const Text('Tóm tắt nội dung sinh viên đã làm (Đã lưu)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'MODULE PHỤ TRÁCH',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    module,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1565C0)),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'GITHUB COMMITS',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text(
+                        '$totalCommits TỔNG • $passedCommits ĐẠT CHUẨN',
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: status == 'Commit Đạt chuẩn' ? Colors.green.shade50 : Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          status,
+                          style: TextStyle(color: status == 'Commit Đạt chuẩn' ? Colors.green.shade700 : Colors.red.shade700, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'GOOGLE DOCS ĐÃ VIẾT',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                  if (docsSummary.isEmpty)
+                    const Text('Không có tóm tắt Docs.', style: TextStyle(color: Colors.grey))
+                  else
+                    ...docsSummary.map((sec) {
+                      final title = sec['section_title'] ?? 'Không có tiêu đề';
+                      final words = sec['word_count'] ?? 0;
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: ListTile(
+                          leading: const Icon(Icons.description, color: Colors.grey),
+                          title: Text(
+                            title.toString(),
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                          ),
+                          trailing: Text(
+                            '$words từ',
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      );
+                    }),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuestionsList(ExamResult? savedResult) {
     if (questions.isEmpty) {
+      if (savedResult != null) {
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Text('Không có câu hỏi nào được lưu.', style: TextStyle(color: Colors.grey)),
+          ),
+        );
+      }
+
       final aiSummary = ref.watch(aiSummaryProvider(AiSummaryParams(
         studentName: widget.student.name,
         githubUsername: widget.student.githubUsername ?? widget.student.name,
@@ -670,7 +805,7 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: isScoreConfirmed ? () async {
+                onPressed: (isScoreConfirmed && !_isInitializedFromSaved) ? () async {
                   final repo = ref.read(groupRepositoryProvider);
                   
                   final commitData = {
@@ -686,16 +821,20 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
                     'score': q.score,
                   }).toList();
 
+                  final result = ExamResult(
+                    groupId: widget.group.id,
+                    studentId: widget.student.uid,
+                    finalScore: selectedWholeScore + (selectedDecimalScore / 10),
+                    suggestedScore: _suggestedScore,
+                    commitData: commitData,
+                    questions: selectedQuestions,
+                    teacherReview: _commentController.text,
+                    modulePhuTrach: _modulePhuTrach,
+                    docsSummary: _docsSummary,
+                  );
+
                   try {
-                    await repo.saveExamResult(
-                      groupId: widget.group.id,
-                      studentId: widget.student.uid,
-                      finalScore: selectedWholeScore + (selectedDecimalScore / 10),
-                      suggestedScore: _suggestedScore,
-                      commitData: commitData,
-                      questions: selectedQuestions,
-                      teacherReview: _commentController.text,
-                    );
+                    await repo.saveExamResult(result);
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lưu điểm thành công!'), backgroundColor: Colors.green));
                       Navigator.pop(context);
@@ -741,42 +880,80 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
 
   @override
   Widget build(BuildContext context) {
-    final aiSummary = ref.watch(aiSummaryProvider(AiSummaryParams(
-      studentName: widget.student.name,
-      githubUsername: widget.student.githubUsername ?? widget.student.name,
-      googleDisplayName: widget.student.googleDisplayName ?? widget.student.name,
-      githubStats: widget.group.githubStats ?? [],
-      docsLink: widget.group.docsUrl ?? '',
-    )));
+    final examResultAsync = ref.watch(examResultProvider('${widget.group.id}_${widget.student.uid}'));
+    final hasSavedResult = examResultAsync.value != null;
 
-    if (questions.isEmpty && aiSummary is AsyncData<String?> && aiSummary.value != null) {
-      try {
-        final aiData = jsonDecode(aiSummary.value!);
-        final List<dynamic> rawQuestions = aiData['questions'] ?? [];
-        if (rawQuestions.isNotEmpty) {
-          questions = rawQuestions.asMap().entries.map((entry) {
-            final index = entry.key;
-            final q = entry.value;
-            
-            final typeStr = q['type']?.toString() ?? 'NHẬN BIẾT';
-            ExamCategory category = ExamCategory.nhanBiet;
-            if (typeStr == 'HIỂU LOGIC') {
-              category = ExamCategory.hieuLogic;
-            } else if (typeStr == 'TỐI ƯU HÓA') {
-              category = ExamCategory.toiUuHoa;
-            }
+    if (hasSavedResult && !_isInitializedFromSaved) {
+      final savedResult = examResultAsync.value!;
+      
+      // Parse questions
+      questions = savedResult.questions.asMap().entries.map((entry) {
+        final index = entry.key;
+        final q = entry.value;
+        return ExamQuestionModel(
+          id: (index + 1).toString(),
+          category: _parseExamCategory(q['category']?.toString() ?? ''),
+          title: q['title']?.toString() ?? '',
+          detailedQuestion: '',
+          isSelected: true,
+          evaluation: _parseStudentEvaluation(q['evaluation']?.toString() ?? ''),
+          score: (q['score'] as num?)?.toInt(),
+        );
+      }).toList();
 
-            return ExamQuestionModel(
-              id: (index + 1).toString(),
-              category: category,
-              title: q['title']?.toString() ?? '',
-              detailedQuestion: q['detail']?.toString() ?? '',
-              isSelected: index == 0,
-            );
-          }).toList();
+      final scoreVal = savedResult.finalScore;
+      selectedWholeScore = scoreVal.toInt();
+      selectedDecimalScore = ((scoreVal - selectedWholeScore) * 10).round();
+      isScoreConfirmed = true;
+      _commentController.text = savedResult.teacherReview;
+
+      final commitData = savedResult.commitData;
+      validCommits = (commitData['passedCommits'] as num?)?.toInt() ?? 3;
+
+      _modulePhuTrach = savedResult.modulePhuTrach;
+      _docsSummary = savedResult.docsSummary;
+
+      _isInitializedFromSaved = true;
+    }
+
+    if (!hasSavedResult) {
+      final aiSummary = ref.watch(aiSummaryProvider(AiSummaryParams(
+        studentName: widget.student.name,
+        githubUsername: widget.student.githubUsername ?? widget.student.name,
+        googleDisplayName: widget.student.googleDisplayName ?? widget.student.name,
+        githubStats: widget.group.githubStats ?? [],
+        docsLink: widget.group.docsUrl ?? '',
+      )));
+
+      if (questions.isEmpty && aiSummary is AsyncData<String?> && aiSummary.value != null) {
+        try {
+          final aiData = jsonDecode(aiSummary.value!);
+          final List<dynamic> rawQuestions = aiData['questions'] ?? [];
+          if (rawQuestions.isNotEmpty) {
+            questions = rawQuestions.asMap().entries.map((entry) {
+              final index = entry.key;
+              final q = entry.value;
+              
+              final typeStr = q['type']?.toString() ?? 'NHẬN BIẾT';
+              ExamCategory category = ExamCategory.nhanBiet;
+              if (typeStr == 'HIỂU LOGIC') {
+                category = ExamCategory.hieuLogic;
+              } else if (typeStr == 'TỐI ƯU HÓA') {
+                category = ExamCategory.toiUuHoa;
+              }
+
+              return ExamQuestionModel(
+                id: (index + 1).toString(),
+                category: category,
+                title: q['title']?.toString() ?? '',
+                detailedQuestion: q['detail']?.toString() ?? '',
+                isSelected: index == 0,
+              );
+            }).toList();
+          }
+        } catch (e) {
+          debugPrint('Error parsing questions: $e');
         }
-      } catch (e) {
-        debugPrint('Error parsing questions: $e');
       }
     }
 
@@ -792,8 +969,8 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
                 SingleChildScrollView(
                   child: Column(
                     children: [
-                      _buildSummary(),
-                      _buildQuestionsList(),
+                      _buildSummary(examResultAsync.value),
+                      _buildQuestionsList(examResultAsync.value),
                     ],
                   ),
                 ),

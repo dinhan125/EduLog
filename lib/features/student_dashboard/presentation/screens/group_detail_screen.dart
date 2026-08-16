@@ -1,3 +1,4 @@
+import '../../../../core/models/exam_result.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/group_management_provider.dart';
@@ -37,12 +38,12 @@ class GroupDetailScreen extends StatelessWidget {
     );
   }
 
-  void _showExamResultDetails(BuildContext context, Map<String, dynamic> data) {
+  void _showExamResultDetails(BuildContext context, ExamResult result) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => _ExamResultSheet(data: data),
+      builder: (ctx) => _ExamResultSheet(result: result),
     );
   }
 
@@ -222,7 +223,8 @@ class GroupDetailScreen extends StatelessWidget {
                   if (!snapshot.hasData || !snapshot.data!.exists) return const SizedBox();
                   
                   final data = snapshot.data!.data() as Map<String, dynamic>;
-                  final finalScore = data['finalScore']?.toString() ?? 'N/A';
+                  final examResult = ExamResult.fromJson(data);
+                  final finalScore = examResult.finalScore.toString();
                   
                   return Column(
                     children: [
@@ -268,7 +270,7 @@ class GroupDetailScreen extends StatelessWidget {
                                 const SizedBox(height: 12),
                                 InkWell(
                                   onTap: () {
-                                    _showExamResultDetails(context, data);
+                                    _showExamResultDetails(context, examResult);
                                   },
                                   child: Row(
                                     children: const [
@@ -503,9 +505,9 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
 }
 
 class _ExamResultSheet extends StatelessWidget {
-  final Map<String, dynamic> data;
+  final ExamResult result;
 
-  const _ExamResultSheet({required this.data});
+  const _ExamResultSheet({required this.result});
 
   Widget _buildScoreCard(String title, String score, MaterialColor color) {
     return Container(
@@ -545,15 +547,12 @@ class _ExamResultSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final questions = List<Map<String, dynamic>>.from(data['questions'] ?? []);
-    final teacherReview = data['teacherReview']?.toString() ?? 'Không có nhận xét';
-    final commitData = data['commitData'] as Map<String, dynamic>?;
-    final commitScore = commitData?['score']?.toString() ?? 'N/A';
-    
-    final suggestedScoreRaw = data['suggestedScore'];
-    final suggestedScore = suggestedScoreRaw != null ? (suggestedScoreRaw as num).toDouble().toStringAsFixed(1) : 'N/A';
-    
-    final finalScore = data['finalScore']?.toString() ?? 'N/A';
+    final questions = result.questions;
+    final teacherReview = result.teacherReview.isEmpty ? 'Không có nhận xét' : result.teacherReview;
+    final commitData = result.commitData;
+    final commitScore = commitData['score']?.toString() ?? 'N/A';
+    final suggestedScore = result.suggestedScore.toStringAsFixed(1);
+    final finalScore = result.finalScore.toString();
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
