@@ -4,7 +4,6 @@ import '../../domain/entities/class_entity.dart';
 import '../providers/group_management_provider.dart';
 import '../widgets/group_card.dart';
 import '../widgets/create_group_bottom_sheet.dart';
-import '../../../../core/utils/firebase_seeder.dart';
 
 class GroupSelectionScreen extends StatefulWidget {
   final ClassEntity classItem;
@@ -17,31 +16,6 @@ class GroupSelectionScreen extends StatefulWidget {
 
 class _GroupSelectionScreenState extends State<GroupSelectionScreen> {
   final _searchController = TextEditingController();
-  bool _isSeeding = false;
-
-  Future<void> _seedData() async {
-    setState(() => _isSeeding = true);
-    try {
-      await FirebaseSeeder.seedMockData(widget.classItem.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã tạo dữ liệu giả thành công')),
-        );
-        await context.read<GroupManagementProvider>().fetchGroups(widget.classItem.id);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi: $e')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSeeding = false);
-      }
-    }
-  }
-
   void _showCreateGroupSheet() {
     showModalBottomSheet(
       context: context,
@@ -84,22 +58,6 @@ class _GroupSelectionScreenState extends State<GroupSelectionScreen> {
           ],
         ),
         actions: [
-          if (_isSeeding)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                ),
-              ),
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.bug_report, color: Colors.white),
-              onPressed: _seedData,
-            ),
           IconButton(
             icon: const Icon(Icons.notifications_none, color: Colors.white),
             onPressed: () {},
