@@ -748,7 +748,7 @@ class _MemberItemCardState extends ConsumerState<_MemberItemCard> {
             const SizedBox(width: 8),
             Expanded(
               child: FilledButton.tonalIcon(
-                onPressed: () async {
+                onPressed: hasResult ? () async {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -760,10 +760,10 @@ class _MemberItemCardState extends ConsumerState<_MemberItemCard> {
                     ),
                   );
                   ref.invalidate(examResultProvider('${widget.group.id}_${widget.user.uid}'));
-                },
-                icon: const Icon(Icons.play_arrow, size: 18),
+                } : null,
+                icon: const Icon(Icons.assessment, size: 18),
                 label: const Text(
-                  'Vấn đáp',
+                  'Xem kết quả vấn đáp',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 style: FilledButton.styleFrom(

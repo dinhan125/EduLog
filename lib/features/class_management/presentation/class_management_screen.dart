@@ -5,7 +5,7 @@ import '../../auth/presentation/login_screen.dart';
 import '../domain/class_controller.dart';
 import 'widgets/subject_card.dart';
 import 'widgets/add_subject_bottom_sheet.dart';
-import '../../../core/utils/firebase_seeder.dart';
+
 
 class ClassManagementScreen extends ConsumerWidget {
   const ClassManagementScreen({super.key, this.authService});
@@ -82,51 +82,34 @@ class ClassManagementScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              // Seed Button
-              IconButton(
-                icon: const Icon(Icons.data_array, color: Colors.white),
-                onPressed: () async {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (context) => const Center(child: CircularProgressIndicator()),
+
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Scaffold(
+                        appBar: AppBar(title: const Text('Trang cá nhân')),
+                        body: const Center(child: Text('Thông tin giảng viên')),
+                      ),
+                    ),
                   );
-                  try {
-                    await FirebaseSeeder.seedClasses(count: 5);
-                    // ignore: use_build_context_synchronously
-                    if (context.mounted) {
-                      Navigator.of(context).pop(); // dismiss dialog
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Đã tạo 5 lớp học!")),
-                      );
-                      // Refresh classes
-                      ref.invalidate(classControllerProvider);
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Lỗi: $e")),
-                      );
-                    }
-                  }
                 },
-              ),
-              const SizedBox(width: 8),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00897B), // Teal avatar background
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                alignment: Alignment.center,
-                child: const Text(
-                  'TV',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00897B), // Teal avatar background
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'TV',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
