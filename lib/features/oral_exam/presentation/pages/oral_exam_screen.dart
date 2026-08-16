@@ -27,7 +27,10 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
   late TabController _tabController;
   List<ExamQuestionModel> questions = [];
 
-  final int mockCommitScore = 6;
+  int validCommits = 3;
+  final int maxCommits = 5;
+
+  double get commitScore => (validCommits / maxCommits) * 10;
   int selectedWholeScore = 7;
   int selectedDecimalScore = 4;
   bool isScoreConfirmed = false;
@@ -75,7 +78,7 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
     if (validScores.isNotEmpty) {
       avgQuestionScore = validScores.reduce((a, b) => a + b) / validScores.length;
     }
-    return (mockCommitScore * 0.3) + (avgQuestionScore * 0.7);
+    return (commitScore * 0.3) + (avgQuestionScore * 0.7);
   }
 
   Widget _buildHeader() {
@@ -671,9 +674,9 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
                   final repo = ref.read(groupRepositoryProvider);
                   
                   final commitData = {
-                    'score': mockCommitScore,
-                    'totalCommits': 5,
-                    'passedCommits': 3,
+                    'score': commitScore,
+                    'totalCommits': maxCommits,
+                    'passedCommits': validCommits,
                   };
 
                   final selectedQuestions = questions.where((q) => q.isSelected).map((q) => {
@@ -865,8 +868,48 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
                           child: const Text('✓ Commit Đạt chuẩn', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
                         ),
                         const SizedBox(height: 8),
-                        Text('3/5 commit đạt chuẩn • Tỉ lệ 60%', style: TextStyle(color: Colors.grey.shade800, fontSize: 13, fontWeight: FontWeight.w500)),
-                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Text('Số commit đạt chuẩn: ', style: TextStyle(color: Colors.grey.shade800, fontSize: 13, fontWeight: FontWeight.w500)),
+                            const SizedBox(width: 8),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.remove, size: 16, color: Colors.blue),
+                                    onPressed: validCommits > 0 ? () {
+                                      setState(() {
+                                        validCommits--;
+                                      });
+                                    } : null,
+                                    padding: const EdgeInsets.all(4),
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                  Text(
+                                    '$validCommits / $maxCommits',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.add, size: 16, color: Colors.blue),
+                                    onPressed: validCommits < maxCommits ? () {
+                                      setState(() {
+                                        validCommits++;
+                                      });
+                                    } : null,
+                                    padding: const EdgeInsets.all(4),
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
                         Text('Tiêu chí: tần suất, nội dung rõ ràng, message đúng format', style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
                       ],
                     ),
@@ -879,7 +922,7 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
                         crossAxisAlignment: CrossAxisAlignment.baseline,
                         textBaseline: TextBaseline.alphabetic,
                         children: [
-                          Text('$mockCommitScore', style: const TextStyle(color: Colors.blue, fontSize: 32, fontWeight: FontWeight.bold)),
+                          Text(commitScore.toStringAsFixed(1), style: const TextStyle(color: Colors.blue, fontSize: 32, fontWeight: FontWeight.bold)),
                           const Text(' / 10', style: TextStyle(color: Colors.grey, fontSize: 12)),
                         ],
                       ),
@@ -1020,7 +1063,7 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: _buildScoreBox('COMMIT', mockCommitScore.toString(), 'x30%', false)),
+                Expanded(child: _buildScoreBox('COMMIT', commitScore.toStringAsFixed(1), 'x30%', false)),
                 const SizedBox(width: 8),
                 Expanded(child: _buildScoreBox('CÂU HỎI', avgQuestionScore.toStringAsFixed(1), 'x70%', false)),
                 const SizedBox(width: 8),

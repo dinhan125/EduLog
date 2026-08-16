@@ -126,26 +126,7 @@ class GroupListScreen extends ConsumerWidget {
                       }
                     },
                   ),
-                  const SizedBox(width: 4),
-                  ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.add, size: 16, color: Color(0xFF1565C0)),
-                    label: const Text(
-                      'Tạo',
-                      style: TextStyle(
-                        color: Color(0xFF1565C0),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
+
                 ],
               ],
             ),
