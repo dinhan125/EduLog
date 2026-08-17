@@ -27,8 +27,13 @@ class StudentDashboardScreen extends StatelessWidget {
             Expanded(
               child: Consumer<StudentDashboardProvider>(
                 builder: (context, provider, child) {
-                  return ListView(
-                    padding: const EdgeInsets.all(20.0),
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      await provider.loadJoinedClasses();
+                    },
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(20.0),
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -104,7 +109,7 @@ class StudentDashboardScreen extends StatelessWidget {
                         );
                       }),
                     ],
-                  );
+                  ));
                 },
               ),
             ),
