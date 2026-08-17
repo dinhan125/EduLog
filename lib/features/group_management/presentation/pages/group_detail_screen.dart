@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../student_dashboard/domain/entities/group_entity.dart';
 import '../../data/repositories/group_repository.dart';
 import '../../../oral_exam/presentation/pages/oral_exam_screen.dart';
+import '../../../../core/widgets/exam_result_bottom_sheet.dart';
 
 class GroupDetailScreen extends ConsumerWidget {
   final GroupEntity group;
@@ -748,18 +749,14 @@ class _MemberItemCardState extends ConsumerState<_MemberItemCard> {
             const SizedBox(width: 8),
             Expanded(
               child: FilledButton.tonalIcon(
-                onPressed: hasResult ? () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => OralExamScreen(
-                        student: widget.user,
-                        groupName: widget.group.name,
-                        group: widget.group,
-                      ),
-                    ),
+                onPressed: hasResult ? () {
+                  final data = examResultAsync.value as Map<String, dynamic>;
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                    builder: (ctx) => ExamResultBottomSheet(data: data),
                   );
-                  ref.invalidate(examResultProvider('${widget.group.id}_${widget.user.uid}'));
                 } : null,
                 icon: const Icon(Icons.assessment, size: 18),
                 label: const Text(

@@ -27,10 +27,35 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
   late TabController _tabController;
   List<ExamQuestionModel> questions = [];
 
-  int validCommits = 3;
-  final int maxCommits = 5;
+  Map<String, int> get _commitStats {
+    final aiSummary = ref.read(aiSummaryProvider(AiSummaryParams(
+      studentName: widget.student.name,
+      githubUsername: widget.student.githubUsername ?? widget.student.name,
+      googleDisplayName: widget.student.googleDisplayName ?? widget.student.name,
+      githubStats: widget.group.githubStats ?? [],
+      docsLink: widget.group.docsUrl ?? '',
+    )));
+    
+    if (aiSummary is AsyncData<String?> && aiSummary.value != null) {
+      try {
+        final aiData = jsonDecode(aiSummary.value!);
+        final githubEval = aiData['github_evaluation'] ?? {};
+        return {
+          'total': githubEval['total_commits'] ?? 0,
+          'passed': githubEval['passed_commits'] ?? 0,
+        };
+      } catch (_) {}
+    }
+    return {'total': 0, 'passed': 0};
+  }
 
-  double get commitScore => (validCommits / maxCommits) * 10;
+  double get commitScore {
+    final stats = _commitStats;
+    final total = stats['total']!;
+    final passed = stats['passed']!;
+    if (total == 0) return 0.0;
+    return (passed / total) * 10.0;
+  }
   int selectedWholeScore = 7;
   int selectedDecimalScore = 4;
   bool isScoreConfirmed = false;
@@ -673,10 +698,11 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
                 onPressed: isScoreConfirmed ? () async {
                   final repo = ref.read(groupRepositoryProvider);
                   
+                  final stats = _commitStats;
                   final commitData = {
-                    'score': commitScore,
-                    'totalCommits': maxCommits,
-                    'passedCommits': validCommits,
+                    'score': double.parse(commitScore.toStringAsFixed(1)),
+                    'totalCommits': stats['total'],
+                    'passedCommits': stats['passed'],
                   };
 
                   final selectedQuestions = questions.where((q) => q.isSelected).map((q) => {
@@ -827,6 +853,10 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
   }
 
   Widget _buildCommitEvaluationCard() {
+    final stats = _commitStats;
+    final passed = stats['passed'];
+    final total = stats['total'];
+
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -868,46 +898,9 @@ class _OralExamScreenState extends ConsumerState<OralExamScreen> with SingleTick
                           child: const Text('✓ Commit Đạt chuẩn', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
                         ),
                         const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Text('Số commit đạt chuẩn: ', style: TextStyle(color: Colors.grey.shade800, fontSize: 13, fontWeight: FontWeight.w500)),
-                            const SizedBox(width: 8),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade50,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.remove, size: 16, color: Colors.blue),
-                                    onPressed: validCommits > 0 ? () {
-                                      setState(() {
-                                        validCommits--;
-                                      });
-                                    } : null,
-                                    padding: const EdgeInsets.all(4),
-                                    constraints: const BoxConstraints(),
-                                  ),
-                                  Text(
-                                    '$validCommits / $maxCommits',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.add, size: 16, color: Colors.blue),
-                                    onPressed: validCommits < maxCommits ? () {
-                                      setState(() {
-                                        validCommits++;
-                                      });
-                                    } : null,
-                                    padding: const EdgeInsets.all(4),
-                                    constraints: const BoxConstraints(),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                        Text(
+                          'Số commit đạt chuẩn: $passed / $total',
+                          style: TextStyle(color: Colors.grey.shade800, fontSize: 13, fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 8),
                         Text('Tiêu chí: tần suất, nội dung rõ ràng, message đúng format', style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
