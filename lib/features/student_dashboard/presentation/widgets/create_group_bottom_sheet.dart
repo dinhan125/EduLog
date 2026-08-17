@@ -32,6 +32,7 @@ class _CreateGroupBottomSheetState extends State<CreateGroupBottomSheet> {
 
     if (mounted) {
       final provider = context.read<GroupManagementProvider>();
+      final navigator = Navigator.of(context);
       try {
         final newGroup = await provider.createGroup(
               widget.classId,
@@ -40,17 +41,15 @@ class _CreateGroupBottomSheetState extends State<CreateGroupBottomSheet> {
               _docsController.text.trim(),
             );
         
-        if (!mounted) return;
-        Navigator.pop(context); // 1. Close bottom sheet
-        
-        // 2. Fetch lại danh sách nhóm và set current group
+        // 1. Fetch lại danh sách nhóm và set current group
         await provider.fetchGroups(widget.classId);
         provider.selectGroup(newGroup);
 
-        if (!mounted) return;
-        // 3. Chuyển sang màn hình chi tiết nhóm
-        Navigator.pushReplacement(
-          context,
+        // 2. Close bottom sheet
+        navigator.pop(); 
+
+        // 3. Chuyển sang màn hình chi tiết nhóm (thay thế màn hình hiện tại)
+        navigator.pushReplacement(
           MaterialPageRoute(
             builder: (_) => GroupDetailScreen(classId: widget.classId),
           ),

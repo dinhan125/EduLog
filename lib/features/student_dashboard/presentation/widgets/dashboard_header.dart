@@ -223,6 +223,13 @@ class _DashboardHeaderState extends State<DashboardHeader> {
               const SizedBox(width: 15),
               InkWell(
                 onTap: () async {
+                  await context.read<StudentDashboardProvider>().loadJoinedClasses();
+                },
+                child: const Icon(Icons.sync, color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 15),
+              InkWell(
+                onTap: () async {
                   showDialog(
                     context: context,
                     barrierDismissible: false,
