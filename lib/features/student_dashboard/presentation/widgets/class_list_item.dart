@@ -163,12 +163,16 @@ class ClassListItem extends StatelessWidget {
                       color: group != null ? topBorderColor : Colors.grey[400],
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      group != null ? 'Nhóm: ${group.name}' : 'Chưa có nhóm',
-                      style: TextStyle(
-                        color: group != null ? topBorderColor : Colors.grey[500],
-                        fontWeight: group != null ? FontWeight.bold : FontWeight.w500,
-                        fontSize: 14,
+                    Expanded(
+                      child: Text(
+                        group != null ? 'Nhóm: ${group.name}' : 'Chưa có nhóm',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: group != null ? topBorderColor : Colors.grey[500],
+                          fontWeight: group != null ? FontWeight.bold : FontWeight.w500,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ],
